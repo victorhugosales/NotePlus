@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3333', // sua URL
+  baseURL: 'https://noteplusbackend.onrender.com', 
 });
 
 // Isso adiciona o token em toda chamada da API automaticamente
