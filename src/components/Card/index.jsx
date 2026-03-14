@@ -57,7 +57,7 @@ export const CardCurso = ({ dados }) => {
 
                 <Anchor
                     component={NavLink}
-                    to={`/Detalhes?curso=${encodeURIComponent(dados.curso)}&uni=${encodeURIComponent(dados.sigla_universidade)}`}
+                    to={`/Detalhes?curso=${encodeURIComponent(dados.curso)}&uni=${encodeURIComponent(dados.sigla_universidade)}&codigo=${dados.codigo_curso}`}
                 >
                     <Button
                         w={'100%'}

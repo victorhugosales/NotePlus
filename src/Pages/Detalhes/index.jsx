@@ -38,8 +38,8 @@ export const Detalhes = () => {
                 });
 
                 const dadosFiltrados = response.data.filter(nota =>
-                    Number(nota.QT_VAGAS_OFERTADAS) > 0 &&
-                    Number(nota.NU_NOTACORTE) > 0
+                    Number(nota.vagas) > 0 &&
+                    Number(nota.nota_corte) > 0
                 );
                 setNotas(dadosFiltrados);
 
