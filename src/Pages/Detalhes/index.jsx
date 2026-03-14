@@ -23,28 +23,36 @@ export const Detalhes = () => {
     const queryParams = new URLSearchParams(location.search);
     const cursoNome = queryParams.get('curso');
     const uniSigla = queryParams.get('uni');
+    const cursoCodigo = queryParams.get('codigo');
 
     useEffect(() => {
         const fetchDetalhes = async () => {
             try {
                 const response = await api.get('/pesquisar', {
                     params: {
+                        codigo: cursoCodigo,
                         curso: cursoNome,
                         universidade: uniSigla,
                         ano: ano
                     }
                 });
-                setNotas(response.data);
-                if (response.data.length > 0) {
-                    setInfoCurso(response.data[0]); // Pega o primeiro para preencher o cabeçalho
+
+                const dadosFiltrados = response.data.filter(nota =>
+                    Number(nota.QT_VAGAS_OFERTADAS) > 0 &&
+                    Number(nota.NU_NOTACORTE) > 0
+                );
+                setNotas(dadosFiltrados);
+
+                if (dadosFiltrados.length > 0) {
+                    setInfoCurso(dadosFiltrados[0]);
                 }
             } catch (error) {
                 console.error("Erro ao buscar detalhes", error);
             }
         };
 
-        if (cursoNome) fetchDetalhes();
-    }, [cursoNome, uniSigla, ano]);
+        if (cursoCodigo || cursoNome) fetchDetalhes();
+    }, [cursoCodigo, cursoNome, uniSigla, ano]);
 
     const navigate = useNavigate();
 
@@ -73,7 +81,7 @@ export const Detalhes = () => {
                     />
                 </Group>
             </Box>
-            
+
             {/* DASHBOARD do curso */}
             <Paper className={classes.dashboard} shadow="sm" p="md" mt={20} withBorder>
                 <Stack>
@@ -85,6 +93,7 @@ export const Detalhes = () => {
 
             <Box mt={20}>
                 <Text size='xl' mb="md" fw={500}>Notas de Corte por Modalidade - SISU {ano}</Text>
+
                 <SimpleGrid cols={4} spacing="md" breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
                     {notas.map((nota) => (
                         <CardDetails key={nota.id_projeto} dados={nota} />
