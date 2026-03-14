@@ -13,6 +13,7 @@ import { NavLink } from "react-router-dom";
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
+import api from './../../services/api';
 
 export const Cadastro = () => {
   const navigate = useNavigate();
@@ -48,31 +49,27 @@ export const Cadastro = () => {
   };
 
   const handleCriarConta = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!validar()) return;
-    setLoading(true);
+  if (!validar()) return;
+  setLoading(true);
 
-    try {
-      const response = await fetch('http://localhost:3333/usuarios', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome, email, senha }),
-      });
+  try {
+    const response = await api.post('/usuarios', { 
+      nome, 
+      email, 
+      senha 
+    });
 
-      const resultado = await response.json();
-
-      if (!response.ok) throw new Error(resultado.error || 'Erro ao cadastrar');
-
-      alert('Conta criada com sucesso!');
-      navigate('/login');
-    } catch (error) {
-      alert('Erro: ' + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+    alert('Conta criada com sucesso!');
+    navigate('/login');
+  } catch (error) {
+    const mensagemErro = error.response?.data?.error || 'Erro ao cadastrar';
+    alert('Erro: ' + mensagemErro);
+  } finally {
+    setLoading(false);
+  }
+};
   return (
     <Container size={420} my={80} justify='center'>
       <Group justify='center'>
