@@ -11,7 +11,6 @@ import {
 } from '@mantine/core';
 import classes from '../Cursos/Cursos.module.css';
 import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { CardCurso } from '../../components/Card';
 import api from '../../services/api'
 
@@ -38,7 +37,7 @@ export const Cursos = () => {
 
     const delayDebounceFn = setTimeout(() => {
       buscarSugestoes();
-    }, 300);
+    }, 200);
 
     return () => clearTimeout(delayDebounceFn);
   }, [pesquisa]);
