@@ -108,7 +108,7 @@ export const Home = () => {
       const response = await api.get('/pesquisar', {
         params: {
           curso: termoFinal.toUpperCase(),
-          global: true // <--- ADICIONE ISSO AQUI
+          global: true 
         }
       });
 
@@ -161,7 +161,7 @@ export const Home = () => {
         </Text>
       </Modal>
       <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
-        <Text className={classes.logo} fw={700} >Visão Geral - Crateús</Text>
+        <Text className={classes.logo} fw={700} >Visão Geral</Text>
         <Group>
           <Button className={classes.headerButton} variant="outline" onClick={open}>Mudar Tema</Button>
           <Button className={classes.headerButton} variant="outline">Notificações</Button>
