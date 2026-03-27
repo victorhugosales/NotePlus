@@ -114,9 +114,13 @@ export const Home = () => {
 
       const mapaAgrupado = {};
       response.data.forEach(item => {
-        const chave = `${item.curso}-${item.sigla_universidade}`;
-        if (!mapaAgrupado[chave]) mapaAgrupado[chave] = { ...item };
-        else mapaAgrupado[chave].vagas += item.vagas;
+        const chave = `${item.codigo_curso}-${item.sigla_universidade}`;
+
+        if (!mapaAgrupado[chave]) {
+          mapaAgrupado[chave] = { ...item, vagas: Number(item.vagas) };
+        } else {
+          mapaAgrupado[chave].vagas += Number(item.vagas);
+        }
       });
 
       const final = Object.values(mapaAgrupado);
@@ -164,7 +168,6 @@ export const Home = () => {
         </Group>
       </Box>
 
-      {/* DASHBOARD AINDA NÃO FUNCIONAL */}
       <Paper className={classes.dashboard} shadow="sm" p="md">
         <Group className={classes.card} position="apart">
           <Text size='xl' fw={500}>{stats.totalCursos}</Text>

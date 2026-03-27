@@ -66,12 +66,12 @@ export const Cursos = () => {
       const mapaAgrupado = {};
 
       response.data.forEach(item => {
-        const chave = `${item.curso}-${item.sigla_universidade}`;
+        const chave = `${item.codigo_curso}-${item.sigla_universidade}`;
 
         if (!mapaAgrupado[chave]) {
-          mapaAgrupado[chave] = { ...item };
+          mapaAgrupado[chave] = { ...item, vagas: Number(item.vagas) };
         } else {
-          mapaAgrupado[chave].vagas += item.vagas;
+          mapaAgrupado[chave].vagas += Number(item.vagas);
         }
       });
 
