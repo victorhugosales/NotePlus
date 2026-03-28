@@ -37,7 +37,7 @@ export const CardCurso = ({ dados }) => {
                 </Text>
 
                 <Text fw={600} size="sm" c="#3D4474">
-                    {dados.campus} ({dados.cidade}, CE)
+                        {dados.campus} {dados.cidade}  
                 </Text>
 
                 <Text c="dimmed">

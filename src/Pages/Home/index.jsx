@@ -108,15 +108,19 @@ export const Home = () => {
       const response = await api.get('/pesquisar', {
         params: {
           curso: termoFinal.toUpperCase(),
-          global: true // <--- ADICIONE ISSO AQUI
+          global: true 
         }
       });
 
       const mapaAgrupado = {};
       response.data.forEach(item => {
-        const chave = `${item.curso}-${item.sigla_universidade}`;
-        if (!mapaAgrupado[chave]) mapaAgrupado[chave] = { ...item };
-        else mapaAgrupado[chave].vagas += item.vagas;
+        const chave = `${item.codigo_curso}-${item.sigla_universidade}`;
+
+        if (!mapaAgrupado[chave]) {
+          mapaAgrupado[chave] = { ...item, vagas: Number(item.vagas) };
+        } else {
+          mapaAgrupado[chave].vagas += Number(item.vagas);
+        }
       });
 
       const final = Object.values(mapaAgrupado);
@@ -157,14 +161,13 @@ export const Home = () => {
         </Text>
       </Modal>
       <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
-        <Text className={classes.logo} fw={700} >Visão Geral - Crateús</Text>
+        <Text className={classes.logo} fw={700} >Visão Geral</Text>
         <Group>
           <Button className={classes.headerButton} variant="outline" onClick={open}>Mudar Tema</Button>
           <Button className={classes.headerButton} variant="outline">Notificações</Button>
         </Group>
       </Box>
 
-      {/* DASHBOARD AINDA NÃO FUNCIONAL */}
       <Paper className={classes.dashboard} shadow="sm" p="md">
         <Group className={classes.card} position="apart">
           <Text size='xl' fw={500}>{stats.totalCursos}</Text>

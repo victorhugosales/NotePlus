@@ -107,14 +107,18 @@ export const Faculdades = () => {
 
       const mapaAgrupado = {};
       response.data.forEach(item => {
-        const chave = `${item.curso}-${item.sigla_universidade}`;
-        if (!mapaAgrupado[chave]) mapaAgrupado[chave] = { ...item };
-        else mapaAgrupado[chave].vagas += item.vagas;
+        const chave = `${item.codigo_curso}-${item.sigla_universidade}`;
+
+        if (!mapaAgrupado[chave]) {
+          mapaAgrupado[chave] = { ...item, vagas: Number(item.vagas) };
+        } else {
+          mapaAgrupado[chave].vagas += Number(item.vagas);
+        }
       });
 
       const final = Object.values(mapaAgrupado);
       setResultados(final);
-      
+
       sessionStorage.setItem('lastResults_Facul', JSON.stringify(final));
       sessionStorage.setItem('lastSearch_Facul', pesquisa);
     } catch (error) { console.error(error); } finally { setLoading(false); }
@@ -156,7 +160,7 @@ export const Faculdades = () => {
             rightSection={
               pesquisa && (
                 <Text
-                  
+
                   style={{ cursor: 'pointer', opacity: 0.5 }}
                   onClick={handleClear}
                   size="xs"
