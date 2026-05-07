@@ -36,13 +36,25 @@ export const Sidebar = () => {
 
     // 3. Manda o cara pro login
     navigate('/login');
-    
+
     // Opcional: força um refresh se sua rota não for protegida automaticamente
     // window.location.reload(); 
   };
-  
+
   return (
-    <Container className={classes.painel} position="fixed" p={0} m={0} h={'100vh'}>
+    <Container
+      className={classes.painel}
+      p={0}
+      m={0}
+      h={'100vh'}
+      style={{
+        position: 'fixed',
+        left: 160,
+        top: 0,
+        width: '300px',
+        zIndex: 100
+      }}
+    >
 
       <Card h={'100vh'} shadow="sm" padding="lg" radius="md" withBorder>
         <Stack justify="flex-start" p="12px" h="100%">
@@ -88,8 +100,9 @@ export const Sidebar = () => {
               </Group>
             </Anchor>
 
-            {/* LINKS CONDICIONAIS: Só aparecem se logado */}
-            {isLoggedIn && (
+
+
+            {/* {isLoggedIn && (
               <>
                 <Anchor component={NavLink} to="/perfil" className={classes.link} underline="never">
                   <Group gap="xs">
@@ -113,7 +126,7 @@ export const Sidebar = () => {
               </>
             )}
 
-            {/* Caso NÃO esteja logado, você pode mostrar um link de login aqui */}
+            
             {!isLoggedIn && (
               <Anchor component={NavLink} to="/login" className={classes.link} underline="never">
                 <Group gap="xs">
@@ -121,12 +134,12 @@ export const Sidebar = () => {
                   <Text>Entrar</Text>
                 </Group>
               </Anchor>
-            )}
+            )} */}
+
           </Stack>
 
           {/* Propaganda */}
-          {!isLoggedIn && (
-            <Stack mt="auto" className={classes.propaganda} gap="md">
+          <Stack mt="auto" className={classes.propaganda} gap="md">
             <Stack gap={0} align="center">
               <Text
                 size="lg"
@@ -151,7 +164,6 @@ export const Sidebar = () => {
               Criar Conta
             </Button>
           </Stack>
-          )}
 
         </Stack>
       </Card>

@@ -107,7 +107,7 @@ export const Cursos = () => {
         </Box>
 
         {/* HEADER DE PESQUISA */}
-        <Group justify='space-between' gap={25}>
+        <Group gap={25}>
           <Autocomplete
             placeholder="Digite o curso (ex: Medicina)"
             className={classes.searchInput}

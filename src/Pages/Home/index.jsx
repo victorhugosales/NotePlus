@@ -38,6 +38,7 @@ export const Home = () => {
 
   const [opened, { open, close }] = useDisclosure(false);
 
+  //organização dos Dados da DashBoard
   const [stats, setStats] = useState({
     totalCursos: 0,
     totalFaculdades: 0,
@@ -45,6 +46,7 @@ export const Home = () => {
     totalEstados: 0
   });
 
+  //Carrega os dados da DashBoard
   useEffect(() => {
     const carregarStats = async () => {
       try {
@@ -60,6 +62,7 @@ export const Home = () => {
     carregarStats();
   }, []);
 
+  //Agrupa os resultados por Estado
   const agruparPorEstado = (dados) => {
     return dados.reduce((acc, item) => {
       const uf = item.uf_campus || 'Outros';
@@ -76,6 +79,7 @@ export const Home = () => {
     }
   }, [location.pathname]);
 
+  //Sugestões de pesquisa no input
   useEffect(() => {
     const buscarSugestoes = async () => {
       if (pesquisa.length < 1) {
@@ -95,10 +99,12 @@ export const Home = () => {
       }
     };
 
-    const delayDebounceFn = setTimeout(() => buscarSugestoes(), 300);
+    //ajuste de delay
+    const delayDebounceFn = setTimeout(() => buscarSugestoes(), 0);
     return () => clearTimeout(delayDebounceFn);
   }, [pesquisa]);
 
+  //Input de pesquisa
   const handleSearch = async (termoManual) => {
     const termoFinal = (typeof termoManual === 'string' ? termoManual : pesquisa).trim();
     if (!termoFinal) return;
@@ -108,7 +114,7 @@ export const Home = () => {
       const response = await api.get('/pesquisar', {
         params: {
           curso: termoFinal.toUpperCase(),
-          global: true 
+          global: true
         }
       });
 
@@ -136,6 +142,7 @@ export const Home = () => {
 
   const dadosAgrupados = agruparPorEstado(resultados);
 
+  //Limpeza do input de pesquisa
   const handleClear = () => {
     setPesquisa('');
     setResultados([]);
@@ -224,7 +231,7 @@ export const Home = () => {
       </Box>
 
       {/* Resultados em cards */}
-      {loading ? (
+      {/* {loading ? (
         <Center mt={50}><Loader color="blue" /></Center>
       ) : (
         <Box mt={30}>
@@ -249,7 +256,38 @@ export const Home = () => {
             pesquisa && <Text ta="center" c="dimmed" mt={50}>Nenhum resultado encontrado.</Text>
           )}
         </Box>
-      )}
+      )} */}
+
+      <Box mt={30}>
+        {Object.keys(dadosAgrupados).length > 0 ? (
+          // 1. Pegamos as siglas (chaves)
+          Object.keys(dadosAgrupados)
+            // 2. Ordenamos de A a Z
+            .sort()
+            // 3. Mapeamos as siglas ordenadas para renderizar
+            .map((sigla) => {
+              const itens = dadosAgrupados[sigla];
+              return (
+                <Box key={sigla} mb={50}>
+                  <Group mb="lg" gap="xs">
+                    <Box bg="blue.7" px={8} py={2} style={{ borderRadius: 4 }}>
+                      <Text c="white" fw={800}>{sigla}</Text>
+                    </Box>
+                    <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
+                  </Group>
+
+                  <SimpleGrid cols={3} spacing="lg">
+                    {itens.map((item) => (
+                      <CardCurso key={item.id_projeto} dados={item} />
+                    ))}
+                  </SimpleGrid>
+                </Box>
+              );
+            })
+        ) : (
+          pesquisa && <Text ta="center" c="dimmed" mt={50}>Nenhum resultado encontrado.</Text>
+        )}
+      </Box>
     </Container>
   );
 };

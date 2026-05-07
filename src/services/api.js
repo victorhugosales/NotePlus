@@ -1,7 +1,17 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://noteplusbackend.onrender.com',
+  //Para o vercel:
+  baseURL: import.meta.env.VITE_API_URL || 
+
+  //Produção:
+  //baseURL: 'https://noteplusbackend.onrender.com'
+
+  // homologação:
+  //baseURL: 'https://homologacaonoteplusbackend.onrender.com'
+
+  //Para testes locais:
+  //baseURL: 'http://localhost:3333'
 });
 
 // Isso adiciona o token em toda chamada da API automaticamente
