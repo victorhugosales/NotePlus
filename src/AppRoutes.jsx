@@ -25,20 +25,19 @@ export const AppRoutes = () => {
       <Notifications />
       <BrowserRouter>
         <Routes>
-          {/* COM SIDEBAR, ROTAS PRIVADAS */}
           <Route element={<PrivateRoute />}>
-            <Route element={<MainLayout />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/cursos" element={<Cursos />} />
-              <Route path="/faculdades" element={<Faculdades />} />
-              <Route path="/detalhes" element={<Detalhes />} />
-              <Route path='/perfil' element={<Perfil/>}/>
-            </Route>
+            <Route path="/login" element={<Login />} />
+            <Route path="/cadastro" element={<Cadastro />} />
           </Route>
 
-          {/* SEM SIDEBAR, ROTAS PÚBLICAS */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/cadastro" element={<Cadastro />} />
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/cursos" element={<Cursos />} />
+            <Route path="/faculdades" element={<Faculdades />} />
+            <Route path="/detalhes" element={<Detalhes />} />
+            <Route path='/perfil' element={<Perfil />} />
+          </Route>
+
         </Routes>
       </BrowserRouter>
     </MantineProvider>
