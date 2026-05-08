@@ -167,6 +167,7 @@ export const Home = () => {
           Em breve
         </Text>
       </Modal>
+      
       <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
         <Text className={classes.logo} fw={700} >Visão Geral</Text>
         <Group>
@@ -276,7 +277,7 @@ export const Home = () => {
                     <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
                   </Group>
 
-                  <SimpleGrid cols={3} spacing="lg">
+                  <SimpleGrid cols={{ base: 2, sm: 2, lg: 3 }} spacing="lg">
                     {itens.map((item) => (
                       <CardCurso key={item.id_projeto} dados={item} />
                     ))}

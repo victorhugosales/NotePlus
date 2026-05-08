@@ -1,9 +1,10 @@
+/* --- MANTÉM SEU ESTILO ORIGINAL DESKTOP --- */
 .mainContainer {
     width: 100%;
     min-height: 100vh;
     padding-top: 20px;
     padding-bottom: 20px;
-    margin-left: 35px;
+    margin-left: 35px; /* Cuidado: isso pode causar scroll horizontal no mobile */
 }
 
 .logo {
@@ -25,7 +26,59 @@
 .card {
     display: flex;
     justify-content: left;
-    
     padding: 20px;
     border-radius: 8px;
+}
+
+/* --- ADICIONA APENAS A RESPONSIVIDADE ABAIXO --- */
+
+@media (max-width: 768px) {
+    .mainContainer {
+        margin-left: 0; /* Remove o deslocamento no mobile */
+        padding: 15px;
+        width: 100vw;
+    }
+
+    /* Ajusta o Header (Visão Geral e Botões) */
+    .header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 15px;
+    }
+
+    /* Ajusta os cards do Dashboard (Cursos, Faculdades, etc) */
+    .dashboard {
+        flex-direction: column !important;
+        gap: 10px;
+    }
+
+    .card {
+        width: 100%;
+        justify-content: space-between; /* Espalha o número e o texto no mobile */
+    }
+
+    /* Ajusta a área de pesquisa */
+    /* Como o Mantine usa Groups, precisamos forçar a quebra */
+    .header + div, /* Seleciona o Box da pesquisa se for o próximo irmão */
+    div[class*="mantine-Group-root"] { 
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    /* Ajusta o Autocomplete para ocupar 100% */
+    div[class*="mantine-Autocomplete-root"] {
+        width: 100% !important;
+    }
+
+    /* Ajusta o botão de pesquisar para ficar full width */
+    button[class*="mantine-Button-root"] {
+        width: 100%;
+    }
+}
+
+/* Ajuste específico para o SimpleGrid (se o Mantine não aplicar automaticamente) */
+@media (max-width: 480px) {
+    div[class*="mantine-SimpleGrid-root"] {
+        grid-template-columns: 1fr !important; /* Força 1 coluna em telas muito pequenas */
+    }
 }

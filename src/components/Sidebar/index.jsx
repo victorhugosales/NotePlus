@@ -46,128 +46,58 @@ export const Sidebar = () => {
       className={classes.painel}
       p={0}
       m={0}
-      h={'100vh'}
       style={{
         position: 'fixed',
-        left: 160,
+        left: '200px', // Ajustado para não ficar tão longe da borda no desktop
         top: 0,
-        width: '300px',
         zIndex: 100
       }}
     >
+      <Card className={classes.sidebarCard} h={'100vh'} shadow="sm" radius="md" withBorder>
+        <Stack className={classes.stackContainer} justify="flex-start" p="12px" h="100%">
 
-      <Card h={'100vh'} shadow="sm" padding="lg" radius="md" withBorder>
-        <Stack justify="flex-start" p="12px" h="100%">
-
-          {/* LOGO */}
+          {/* LOGO - Sumirá no mobile via CSS */}
           <Text align="center" className={classes.logo}>NotePlus+</Text>
 
-          {/* LINKS */}
-          <Stack gap="sm">
-            <Anchor
-              component={NavLink}
-              to="/"
-              className={classes.link}
-              underline="never"
-            >
-              <Group gap="xs">
-                <IconHome size={20} stroke={1.5} />
-                <Text>Menu</Text>
+          {/* LINKS - Virarão linha no mobile */}
+          <Stack className={classes.linksStack} gap="sm">
+            <Anchor component={NavLink} to="/" className={classes.link} underline="never">
+              <Group gap="xs" className={classes.linkGroup}>
+                <IconHome size={22} stroke={1.5} />
+                <Text size="sm">Menu</Text>
               </Group>
             </Anchor>
 
-            <Anchor
-              component={NavLink}
-              to="/cursos"
-              className={classes.link}
-              underline="never"
-            >
-              <Group gap="xs">
-                <IconBook size={20} stroke={1.5} />
-                <Text>Cursos</Text>
+            <Anchor component={NavLink} to="/cursos" className={classes.link} underline="never">
+              <Group gap="xs" className={classes.linkGroup}>
+                <IconBook size={22} stroke={1.5} />
+                <Text size="sm">Cursos</Text>
               </Group>
             </Anchor>
 
-            <Anchor
-              component={NavLink}
-              to="/faculdades"
-              className={classes.link}
-              underline="never"
-            >
-              <Group gap="xs">
-                <IconSchool size={20} stroke={1.5} />
-                <Text>Faculdades</Text>
+            <Anchor component={NavLink} to="/faculdades" className={classes.link} underline="never">
+              <Group gap="xs" className={classes.linkGroup}>
+                <IconSchool size={22} stroke={1.5} />
+                <Text size="sm">Faculdades</Text>
               </Group>
             </Anchor>
-
-
-
-            {/* {isLoggedIn && (
-              <>
-                <Anchor component={NavLink} to="/perfil" className={classes.link} underline="never">
-                  <Group gap="xs">
-                    <IconUser size={20} stroke={1.5} />
-                    <Text>Perfil</Text>
-                  </Group>
-                </Anchor>
-
-                <Anchor
-                  className={classes.link}
-                  c="red"
-                  underline='never'
-                  onClick={handleLogout}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <Group gap="xs">
-                    <IconLogout size={20} stroke={1.5} />
-                    <Text>Sair</Text>
-                  </Group>
-                </Anchor>
-              </>
-            )}
-
-            
-            {!isLoggedIn && (
-              <Anchor component={NavLink} to="/login" className={classes.link} underline="never">
-                <Group gap="xs">
-                  <IconUser size={20} stroke={1.5} />
-                  <Text>Entrar</Text>
-                </Group>
-              </Anchor>
-            )} */}
-
           </Stack>
 
-          {/* Propaganda */}
+          {/* PROPAGANDA - Sumirá no mobile via CSS */}
           <Stack mt="auto" className={classes.propaganda} gap="md">
-            <Stack gap={0} align="center">
-              <Text
-                size="lg"
-                fw={700}
-                ta="center"
-                className={classes.propagandaTitle}
-              >
-                Versão Completa
-              </Text>
-            </Stack>
-
-            <Text size="xs" ta="center" c="dimmed" lh={1.4}>
-              Acesso à estatistícas, previsões, comparações, perfil, notificações e muito mais
+            <Text size="md" fw={700} ta="center" className={classes.propagandaTitle}>
+              Versão Completa
             </Text>
-
-            <Button
-              fullWidth
-              className={classes.propagandaBtn}
-              radius="md"
-              size="md"
-            >
+            <Text size="xs" ta="center" c="dimmed" lh={1.4}>
+              Acesso à estatistícas e muito mais
+            </Text>
+            <Button fullWidth className={classes.propagandaBtn} radius="md" size="sm">
               Criar Conta
             </Button>
           </Stack>
 
         </Stack>
       </Card>
-
     </Container>
   );
 };
