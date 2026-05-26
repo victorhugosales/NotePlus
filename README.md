@@ -101,4 +101,4 @@ Entre as próximas evoluções previstas estão:
 
 # Autor
 
-Projeto desenvolvido por Victor Hugo.
+Projeto desenvolvido por Victor Hugo Sales Paz.
