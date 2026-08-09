@@ -8,68 +8,56 @@ import {
     Card,
 } from '@mantine/core';
 import { NavLink } from 'react-router-dom';
+import classes from './Card.module.css'
 
 export const CardCurso = ({ dados }) => {
     if (!dados) return null;
     return (
-        <Card shadow="sm" padding={0} style={{ marginTop: 20 }} withBorder>
-            <Box
-                bg="#3D4474"
-                p="sm"
-                w={'100%'}
-                style={{
-                    height: '80px', // Altura fixa para o título não quebrar o layout
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }}
-            >
-                <Group justify="space-between">
-                    <Text align="center" c="white" fw={700} size="md" >
-                        {dados.curso}
-                    </Text>
-                </Group>
+        <Card
+            padding={0} // Garante que não haja espaço entre a borda do card e o Box azul
+            className={classes.cardContainer}
+            withBorder
+        >
+            {/* Cabeçalho que encosta nas bordas */}
+            <Box className={classes.headerBox}>
+                <Text className={classes.cursoNome}>
+                    {dados.curso}
+                </Text>
             </Box>
 
-            <Stack p="sm" gap={0} style={{ flex: 1 }} justify="space-between">
-                <Text fw={500}>
+            {/* Conteúdo que TEM respiro (padding) */}
+            <Stack className={classes.contentStack} gap={0}>
+                <Text className={classes.universidadeNome}>
                     {dados.sigla_universidade} - {dados.nome_universidade}
                 </Text>
 
-                <Text fw={600} size="sm" c="#3D4474">
-                        {dados.campus} {dados.cidade}  
+                <Text className={classes.detalhesTexto}>
+                    {dados.campus} {dados.cidade}
                 </Text>
 
-                <Text c="dimmed">
+                <Text className={classes.grauTexto}>
                     {dados.grau}
                 </Text>
 
-                <Box mt="sm">
-                    <Text c="dimmed" size="sm">
-                        Total de vagas
-                    </Text>
-
-                    <Text size="xl" fw={700} c="#3D4474">
-                        {dados.vagas}
-                    </Text>
+                <Box mt={5}>
+                    <Text className={classes.vagasLabel}>Vagas</Text>
+                    <Text className={classes.vagasNumero}>{dados.vagas}</Text>
                 </Box>
-
 
                 <Anchor
                     component={NavLink}
                     to={`/Detalhes?curso=${encodeURIComponent(dados.curso)}&uni=${encodeURIComponent(dados.sigla_universidade)}&codigo=${dados.codigo_curso}`}
+                    underline="none"
+                    style={{ marginTop: 'auto' }}
                 >
                     <Button
-                        w={'100%'}
+                        fullWidth
                         variant="light"
-                        radius="xl"
-                        size="md"
-                        mt="sm"
+                        radius="md"
+                        size="xs"
+                        mt={10}
                         styles={{
-                            root: {
-                                boxShadow: "0px 4px 10px rgba(0,0,0,0.15)",
-                                fontWeight: 600
-                            }
+                            root: { height: '30px', fontSize: '10px' }
                         }}
                     >
                         Ver Curso

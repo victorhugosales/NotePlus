@@ -48,7 +48,7 @@ export const Sidebar = () => {
       m={0}
       style={{
         position: 'fixed',
-        left: '200px', // Ajustado para não ficar tão longe da borda no desktop
+        left: '100px', // Ajustado para não ficar tão longe da borda no desktop
         top: 0,
         zIndex: 100
       }}
@@ -79,6 +79,13 @@ export const Sidebar = () => {
               <Group gap="xs" className={classes.linkGroup}>
                 <IconSchool size={22} stroke={1.5} />
                 <Text size="sm">Faculdades</Text>
+              </Group>
+            </Anchor>
+
+            <Anchor component={NavLink} to="/perfil" className={classes.link} underline="never">
+              <Group gap="xs" className={classes.linkGroup}>
+                <IconSchool size={22} stroke={1.5} />
+                <Text size="sm">Perfil</Text>
               </Group>
             </Anchor>
           </Stack>

@@ -1,10 +1,10 @@
-/* --- MANTÉM SEU ESTILO ORIGINAL DESKTOP --- */
+/* --- ESTILO DESKTOP --- */
 .mainContainer {
     width: 100%;
     min-height: 100vh;
-    padding-top: 20px;
-    padding-bottom: 20px;
-    margin-left: 35px; /* Cuidado: isso pode causar scroll horizontal no mobile */
+    padding: 20px;
+    margin-left: 35px;
+    box-sizing: border-box;
 }
 
 .logo {
@@ -30,55 +30,77 @@
     border-radius: 8px;
 }
 
-/* --- ADICIONA APENAS A RESPONSIVIDADE ABAIXO --- */
+/* --- RESPONSIVIDADE (MOBILE E TABLET) --- */
 
 @media (max-width: 768px) {
     .mainContainer {
-        margin-left: 0; /* Remove o deslocamento no mobile */
-        padding: 15px;
-        width: 100vw;
+        margin-left: 0 !important; 
+        padding: 10px !important;
+        width: 100% !important; /* Alterado de 100vw para 100% para evitar scroll lateral */
+        padding-bottom: 90px !important; /* Espaço para a Sidebar inferior não cobrir o conteúdo */
+        overflow-x: hidden;
     }
 
-    /* Ajusta o Header (Visão Geral e Botões) */
-    .header {
+    /* Header e Dashboard empilhados */
+    .header, .dashboard {
         flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 15px;
-    }
-
-    /* Ajusta os cards do Dashboard (Cursos, Faculdades, etc) */
-    .dashboard {
-        flex-direction: column !important;
+        align-items: stretch !important;
         gap: 10px;
+    }
+
+    .btnsHeader {
+        display: flex;
+        flex-direction: row;
+
+        justify-content: space-between;
+    }
+
+
+    .dashboard {
+        width: 20rem;
+        border-radius: 10px;
     }
 
     .card {
         width: 100%;
-        justify-content: space-between; /* Espalha o número e o texto no mobile */
+        justify-content: space-between;
+        padding: 15px !important;
+        background-color: rgba(240, 248, 255, 0.514);
+        
+
     }
 
-    /* Ajusta a área de pesquisa */
-    /* Como o Mantine usa Groups, precisamos forçar a quebra */
-    .header + div, /* Seleciona o Box da pesquisa se for o próximo irmão */
-    div[class*="mantine-Group-root"] { 
+    /* Ajuste da Área de Pesquisa */
+    /* Força o input e o botão a ficarem um embaixo do outro */
+    div[class*="mantine-Group-root"]:has(input) { 
         flex-direction: column !important;
         align-items: stretch !important;
+        gap: 10px !important;
     }
 
-    /* Ajusta o Autocomplete para ocupar 100% */
-    div[class*="mantine-Autocomplete-root"] {
+    div[class*="mantine-Autocomplete-root"],
+    button[class*="mantine-Button-root"] {
         width: 100% !important;
     }
 
-    /* Ajusta o botão de pesquisar para ficar full width */
-    button[class*="mantine-Button-root"] {
-        width: 100%;
+    /* --- OS CARDS LADO A LADO --- */
+    /* Seleciona o SimpleGrid dos resultados */
+    div[class*="mantine-SimpleGrid-root"] {
+        grid-template-columns: repeat(2, 1fr) !important; /* FORÇA 2 COLUNAS */
+        gap: 10px !important; /* Espaço reduzido para caber melhor */
     }
+
+    /* Ajuste interno do Card (caso ele tenha larguras fixas) */
+    div[class*="mantine-Card-root"] {
+        padding: 8px !important; /* Diminui padding interno para sobrar espaço pro texto */
+        min-width: 0 !important; /* Permite que o card encolha conforme o grid */
+    }
+
+    /* Ajuste de textos dentro do card para não quebrarem o layout */
+    div[class*="mantine-Card-root"] text, 
+    div[class*="mantine-Card-root"] span {
+        font-size: 12px !important; /* Diminui um pouco a fonte nos cards */
+    }
+
 }
 
-/* Ajuste específico para o SimpleGrid (se o Mantine não aplicar automaticamente) */
-@media (max-width: 480px) {
-    div[class*="mantine-SimpleGrid-root"] {
-        grid-template-columns: 1fr !important; /* Força 1 coluna em telas muito pequenas */
-    }
-}

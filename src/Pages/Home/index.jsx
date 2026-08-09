@@ -156,7 +156,7 @@ export const Home = () => {
       <Modal
         opened={opened}
         onClose={close}
-        title={`Mudar tema`}
+        title={`Função indisponível`}
         centered
         overlayProps={{
           backgroundOpacity: 0.55,
@@ -170,9 +170,9 @@ export const Home = () => {
       
       <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
         <Text className={classes.logo} fw={700} >Visão Geral</Text>
-        <Group>
+        <Group className={classes.btnsHeader}>
           <Button className={classes.headerButton} variant="outline" onClick={open}>Mudar Tema</Button>
-          <Button className={classes.headerButton} variant="outline">Notificações</Button>
+          <Button className={classes.headerButton} variant="outline" onClick={open}>Notificações</Button>
         </Group>
       </Box>
 
@@ -204,7 +204,7 @@ export const Home = () => {
         <Group justify='space-between'>
           <Autocomplete
             size='md'
-            w={770}
+            flex={1}
             placeholder="Digite o nome do curso (ex: Ciência da...)"
             value={pesquisa}
             onChange={setPesquisa}
