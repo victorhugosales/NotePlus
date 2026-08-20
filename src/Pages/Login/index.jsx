@@ -9,6 +9,7 @@ import {
   Anchor,
   Text,
 } from '@mantine/core';
+import { IconArrowLeft } from '@tabler/icons-react';
 import classes from './login.module.css';
 import goo from '../../assets/img01.png'
 import { NavLink, useNavigate } from "react-router-dom";
@@ -63,6 +64,13 @@ export const Login = () => {
 
   return (
     <Container size={420} my={80} justify='center'>
+      <Anchor component={NavLink} to="/" underline="never" c="dimmed">
+        <Group gap={4} align="center">
+          <IconArrowLeft size={16} stroke={1.5} />
+          <Text size="sm">Voltar</Text>
+        </Group>
+      </Anchor>
+
       <Group justify='center'>
         <Text className={classes.logo}>NotePlus+</Text>
       </Group>

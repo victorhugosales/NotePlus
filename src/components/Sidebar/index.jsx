@@ -34,11 +34,8 @@ export const Sidebar = () => {
     // 2. ATUALIZA O ESTADO NA HORA para o Sidebar reagir
     setIsLoggedIn(false);
 
-    // 3. Manda o cara pro login
-    navigate('/login');
-
-    // Opcional: força um refresh se sua rota não for protegida automaticamente
-    // window.location.reload(); 
+    // 3. Volta pra Home (não faz sentido mandar pra cadastro/login ao sair)
+    navigate('/');
   };
 
   return (
@@ -122,6 +119,16 @@ export const Sidebar = () => {
               >
                 Criar Conta
               </Button>
+              <Anchor
+                component="button"
+                type="button"
+                ta="center"
+                size="xs"
+                underline="never"
+                onClick={() => navigate('/login')}
+              >
+                ou Entrar na Conta
+              </Anchor>
             </Stack>
           )}
 
