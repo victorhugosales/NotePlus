@@ -23,4 +23,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Se o backend disser que o token é inválido/expirado, limpa a sessão local.
+// Assim, na próxima vez que o usuário tentar entrar no /perfil, o RequireAuth
+// já não encontra token e manda ele pro /cadastro de novo, em vez de travar em erro.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('@NotePlus:token');
+      localStorage.removeItem('@NotePlus:user');
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

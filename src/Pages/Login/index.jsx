@@ -41,8 +41,8 @@ export const Login = () => {
       localStorage.setItem('@NotePlus:token', response.data.token);
       localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
 
-      // 4. Se deu tudo certo, vai para a Home
-      navigate('/');
+      // 4. Se deu tudo certo, vai para o Perfil (único lugar que exige login)
+      navigate('/perfil');
     } catch (err) {
       // Pega a mensagem de erro vinda do backend (ex: "E-mail ou senha inválidos")
       const mensagem = err.response?.data?.error || "Erro ao tentar logar.";

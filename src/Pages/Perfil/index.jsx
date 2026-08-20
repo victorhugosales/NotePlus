@@ -77,7 +77,7 @@ export const Perfil = () => {
 
             if (editingField === 'nome') dataToUpdate.nome = tempValue;
             if (editingField === 'email') dataToUpdate.email = tempValue;
-            if (editingField === 'senha') dataToUpdate.senha_hash = tempPassword;
+            if (editingField === 'senha') dataToUpdate.senha = tempPassword;
 
             await api.put(`/usuario/${user.id}`, dataToUpdate);
 

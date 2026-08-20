@@ -13,10 +13,13 @@ import { Detalhes } from './Pages/Detalhes';
 import { Perfil } from './Pages/Perfil'
 
 import { Navigate, Outlet } from 'react-router-dom';
-export const PrivateRoute = () => {
+
+// Protege apenas a rota /perfil: sem token, manda para o Cadastro
+// (não para o Login, conforme o fluxo: quem quer se cadastrar cai direto no Perfil).
+export const RequireAuth = () => {
   const isAuthenticated = localStorage.getItem('@NotePlus:token');
 
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
+  return isAuthenticated ? <Outlet /> : <Navigate to="/cadastro" replace />;
 };
 
 export const AppRoutes = () => {
@@ -25,17 +28,21 @@ export const AppRoutes = () => {
       <Notifications />
       <BrowserRouter>
         <Routes>
-          <Route element={<PrivateRoute />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/cadastro" element={<Cadastro />} />
-          </Route>
+          {/* Rotas públicas, sem sidebar */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/cadastro" element={<Cadastro />} />
 
           <Route element={<MainLayout />}>
+            {/* Home e páginas de pesquisa: livres, sem exigir login */}
             <Route path="/" element={<Home />} />
             <Route path="/cursos" element={<Cursos />} />
             <Route path="/faculdades" element={<Faculdades />} />
             <Route path="/detalhes" element={<Detalhes />} />
-            <Route path='/perfil' element={<Perfil />} />
+
+            {/* Perfil: exige estar autenticado */}
+            <Route element={<RequireAuth />}>
+              <Route path='/perfil' element={<Perfil />} />
+            </Route>
           </Route>
 
         </Routes>

@@ -84,24 +84,46 @@ export const Sidebar = () => {
 
             <Anchor component={NavLink} to="/perfil" className={classes.link} underline="never">
               <Group gap="xs" className={classes.linkGroup}>
-                <IconSchool size={22} stroke={1.5} />
+                <IconUser size={22} stroke={1.5} />
                 <Text size="sm">Perfil</Text>
               </Group>
             </Anchor>
           </Stack>
 
-          {/* PROPAGANDA - Sumirá no mobile via CSS */}
-          <Stack mt="auto" className={classes.propaganda} gap="md">
-            <Text size="md" fw={700} ta="center" className={classes.propagandaTitle}>
-              Versão Completa
-            </Text>
-            <Text size="xs" ta="center" c="dimmed" lh={1.4}>
-              Acesso à estatistícas e muito mais
-            </Text>
-            <Button fullWidth className={classes.propagandaBtn} radius="md" size="sm">
-              Criar Conta
-            </Button>
-          </Stack>
+          {isLoggedIn ? (
+            <Stack mt="auto" gap="sm">
+              <Button
+                fullWidth
+                variant="light"
+                color="red"
+                radius="md"
+                size="sm"
+                leftSection={<IconLogout size={18} stroke={1.5} />}
+                onClick={handleLogout}
+              >
+                Sair
+              </Button>
+            </Stack>
+          ) : (
+            /* PROPAGANDA - Sumirá no mobile via CSS */
+            <Stack mt="auto" className={classes.propaganda} gap="md">
+              <Text size="md" fw={700} ta="center" className={classes.propagandaTitle}>
+                Versão Completa
+              </Text>
+              <Text size="xs" ta="center" c="dimmed" lh={1.4}>
+                Acesso à estatistícas e muito mais
+              </Text>
+              <Button
+                fullWidth
+                className={classes.propagandaBtn}
+                radius="md"
+                size="sm"
+                onClick={() => navigate('/cadastro')}
+              >
+                Criar Conta
+              </Button>
+            </Stack>
+          )}
 
         </Stack>
       </Card>

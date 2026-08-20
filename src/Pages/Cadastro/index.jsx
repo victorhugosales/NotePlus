@@ -55,14 +55,17 @@ export const Cadastro = () => {
   setLoading(true);
 
   try {
-    const response = await api.post('/usuarios', { 
-      nome, 
-      email, 
-      senha 
+    const response = await api.post('/usuarios', {
+      nome,
+      email,
+      senha
     });
 
-    alert('Conta criada com sucesso!');
-    navigate('/login');
+    // Cadastro já vem com token + user (login automático), igual ao /login
+    localStorage.setItem('@NotePlus:token', response.data.token);
+    localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
+
+    navigate('/perfil');
   } catch (error) {
     const mensagemErro = error.response?.data?.error || 'Erro ao cadastrar';
     alert('Erro: ' + mensagemErro);
