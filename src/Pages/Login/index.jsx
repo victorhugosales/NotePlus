@@ -13,6 +13,7 @@ import classes from './login.module.css';
 import goo from '../../assets/img01.png'
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from 'react'
+import { notifications } from '@mantine/notifications';
 import api from '../../services/api'; // Importe sua configuração do axios
 
 export const Login = () => {
@@ -26,7 +27,11 @@ export const Login = () => {
   const handleEntrar = async () => {
     // Validação básica
     if (!email || !senha) {
-      alert("Preencha todos os campos!");
+      notifications.show({
+        title: 'Campos obrigatórios',
+        message: 'Preencha e-mail e senha para continuar.',
+        color: 'red',
+      });
       return;
     }
 
@@ -46,7 +51,11 @@ export const Login = () => {
     } catch (err) {
       // Pega a mensagem de erro vinda do backend (ex: "E-mail ou senha inválidos")
       const mensagem = err.response?.data?.error || "Erro ao tentar logar.";
-      alert(mensagem);
+      notifications.show({
+        title: 'Não foi possível entrar',
+        message: mensagem,
+        color: 'red',
+      });
     } finally {
       setLoading(false);
     }

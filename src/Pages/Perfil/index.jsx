@@ -31,6 +31,10 @@ import classes from '../Perfil/Perfil.module.css'
 import { useState, useEffect } from 'react';
 import api from '../../services/api'
 import { modals } from '@mantine/modals'
+import { notifications } from '@mantine/notifications'
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SENHA_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
 export const Perfil = () => {
     const [user, setUser] = useState(null);
@@ -72,6 +76,23 @@ export const Perfil = () => {
     }, []);
 
     const handleUpdate = async () => {
+        if (editingField === 'nome' && tempValue.trim().length < 3) {
+            notifications.show({ title: 'Nome inválido', message: 'Digite seu nome completo.', color: 'red' });
+            return;
+        }
+        if (editingField === 'email' && !EMAIL_REGEX.test(tempValue)) {
+            notifications.show({ title: 'E-mail inválido', message: 'Digite um e-mail válido.', color: 'red' });
+            return;
+        }
+        if (editingField === 'senha' && !SENHA_REGEX.test(tempPassword)) {
+            notifications.show({
+                title: 'Senha inválida',
+                message: 'Mínimo 8 caracteres, com pelo menos 1 letra e 1 número.',
+                color: 'red',
+            });
+            return;
+        }
+
         try {
             const dataToUpdate = {};
 
@@ -88,9 +109,13 @@ export const Perfil = () => {
 
             setEditingField(null);
             setTempPassword('');
-            alert("Atualizado com sucesso!");
+            notifications.show({ title: 'Sucesso', message: 'Atualizado com sucesso!', color: 'teal' });
         } catch (err) {
-            alert(err.response?.data?.error || "Erro ao salvar alterações.");
+            notifications.show({
+                title: 'Erro ao salvar',
+                message: err.response?.data?.error || 'Erro ao salvar alterações.',
+                color: 'red',
+            });
         }
     };
 
@@ -100,7 +125,7 @@ export const Perfil = () => {
             setUser({ ...user, nome: newName });
             setEditingName(false);
         } catch (err) {
-            alert("Erro ao salvar.");
+            notifications.show({ title: 'Erro ao salvar', message: 'Erro ao salvar.', color: 'red' });
         }
     };
 
@@ -112,10 +137,19 @@ export const Perfil = () => {
             localStorage.removeItem('@NotePlus:user');
             localStorage.removeItem('@NotePlus:token');
 
-            alert("Sua conta foi excluída permanentemente.");
-            window.location.href = '/cadastro'; // Redireciona de forma bruta para limpar estados
+            notifications.show({
+                title: 'Conta excluída',
+                message: 'Sua conta foi excluída permanentemente.',
+                color: 'teal',
+            });
+            // Redireciona de forma bruta para limpar estados; pequeno atraso pro toast aparecer
+            setTimeout(() => { window.location.href = '/cadastro'; }, 1200);
         } catch (err) {
-            alert(err.response?.data?.error || "Erro ao deletar conta.");
+            notifications.show({
+                title: 'Erro ao excluir',
+                message: err.response?.data?.error || 'Erro ao deletar conta.',
+                color: 'red',
+            });
         }
     };
 
@@ -212,7 +246,7 @@ export const Perfil = () => {
                                     onEdit={() => { setEditingField('nome'); setTempValue(user.nome); }}
                                 >
                                     <Stack gap="xs">
-                                        <TextInput value={tempValue} onChange={(e) => setTempValue(e.target.value)} />
+                                        <TextInput required value={tempValue} onChange={(e) => setTempValue(e.target.value)} />
                                         <Group gap="xs">
                                             <Button size="compact-xs" color="orange" onClick={handleUpdate}>Salvar</Button>
                                             <Button size="compact-xs" variant="subtle" color="gray" onClick={() => setEditingField(null)}>Cancelar</Button>
@@ -228,7 +262,7 @@ export const Perfil = () => {
                                     onEdit={() => { setEditingField('email'); setTempValue(user.email); }}
                                 >
                                     <Stack gap="xs">
-                                        <TextInput value={tempValue} onChange={(e) => setTempValue(e.target.value)} />
+                                        <TextInput required type="email" value={tempValue} onChange={(e) => setTempValue(e.target.value)} />
                                         <Group gap="xs">
                                             <Button size="compact-xs" color="orange" onClick={handleUpdate}>Salvar</Button>
                                             <Button size="compact-xs" variant="subtle" color="gray" onClick={() => setEditingField(null)}>Cancelar</Button>
@@ -244,7 +278,12 @@ export const Perfil = () => {
                                     onEdit={() => { setEditingField('senha'); setTempPassword(''); }}
                                 >
                                     <Stack gap="xs">
-                                        <PasswordInput placeholder="Nova senha" value={tempPassword} onChange={(e) => setTempPassword(e.target.value)} />
+                                        <PasswordInput
+                                            required
+                                            placeholder="Mínimo 8 caracteres, letras e números"
+                                            value={tempPassword}
+                                            onChange={(e) => setTempPassword(e.target.value)}
+                                        />
                                         <Group gap="xs">
                                             <Button size="compact-xs" color="orange" onClick={handleUpdate}>Alterar Senha</Button>
                                             <Button size="compact-xs" variant="subtle" color="gray" onClick={() => setEditingField(null)}>Cancelar</Button>

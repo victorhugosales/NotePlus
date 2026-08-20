@@ -39,8 +39,9 @@ export const Cadastro = () => {
       isValid = false;
     }
 
-    if (senha.length < 6) {
-      novoErros.senha = 'A senha deve ter no mínimo 6 caracteres';
+    const senhaRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    if (!senhaRegex.test(senha)) {
+      novoErros.senha = 'Mínimo 8 caracteres, com pelo menos 1 letra e 1 número';
       isValid = false;
     }
 
@@ -68,7 +69,11 @@ export const Cadastro = () => {
     navigate('/perfil');
   } catch (error) {
     const mensagemErro = error.response?.data?.error || 'Erro ao cadastrar';
-    alert('Erro: ' + mensagemErro);
+    notifications.show({
+      title: 'Não foi possível criar a conta',
+      message: mensagemErro,
+      color: 'red',
+    });
   } finally {
     setLoading(false);
   }
@@ -100,7 +105,7 @@ export const Cadastro = () => {
           />
           <PasswordInput
             label='Senha'
-            placeholder='No mínimo 6 caracteres'
+            placeholder='Mínimo 8 caracteres, letras e números'
             required
             mt='md'
             value={senha}
