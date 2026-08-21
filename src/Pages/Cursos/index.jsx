@@ -12,8 +12,11 @@ import {
 } from '@mantine/core';
 import classes from '../Cursos/Cursos.module.css';
 import { useState, useEffect } from 'react';
+import { useDisclosure } from '@mantine/hooks';
 import { CardCurso } from '../../components/Card';
 import api from '../../services/api'
+import { useFavoritos } from '../../hooks/useFavoritos';
+import { LoginRequiredModal } from '../../components/LoginRequiredModal';
 
 const estadosMap = {
   'AC': 'ACRE', 'AL': 'ALAGOAS', 'AM': 'AMAZONAS', 'AP': 'AMAPÁ', 'BA': 'BAHIA',
@@ -39,7 +42,10 @@ export const Cursos = () => {
   const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('lastResults')) || []);
   const [sugestoes, setSugestoes] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
+  const [loginModalOpened, { open: openLoginModal, close: closeLoginModal }] = useDisclosure(false);
+  const { isFavorito, toggleFavorito } = useFavoritos({ onNaoAutenticado: openLoginModal });
+
   useEffect(() => {
     const buscarSugestoes = async () => {
       if (pesquisa.length < 1) {
@@ -120,6 +126,13 @@ export const Cursos = () => {
 
   return (
     <Container className={classes.mainContainer}>
+      <LoginRequiredModal
+        opened={loginModalOpened}
+        onClose={closeLoginModal}
+        title="Favoritar curso"
+        message="Esse recurso só está disponível para usuários da plataforma. Entre ou cadastre-se para favoritar cursos."
+      />
+
       <Group className={classes.Header} mt={20}>
         <Box>
           <Text fw={700} size="24px" style={{ lineHeight: 1 }}>Cursos</Text>
@@ -184,6 +197,8 @@ export const Cursos = () => {
                 <CardCurso
                   key={item.id_projeto}
                   dados={item}
+                  isFavorito={isFavorito(item)}
+                  onToggleFavorito={toggleFavorito}
                 />
               ))
             ) : (

@@ -6,11 +6,15 @@ import {
     Text,
     Box,
     Card,
+    ActionIcon,
 } from '@mantine/core';
+import { IconStar, IconStarFilled } from '@tabler/icons-react';
 import { NavLink } from 'react-router-dom';
 import classes from './Card.module.css'
 
-export const CardCurso = ({ dados }) => {
+// isFavorito/onToggleFavorito são opcionais: a estrela só aparece quando a
+// página que renderiza o card controla o estado de favoritos (Home, Cursos).
+export const CardCurso = ({ dados, isFavorito, onToggleFavorito }) => {
     if (!dados) return null;
     return (
         <Card
@@ -19,10 +23,31 @@ export const CardCurso = ({ dados }) => {
             withBorder
         >
             {/* Cabeçalho que encosta nas bordas */}
-            <Box className={classes.headerBox}>
+            <Box className={classes.headerBox} style={{ position: 'relative' }}>
                 <Text className={classes.cursoNome}>
                     {dados.curso}
                 </Text>
+
+                {onToggleFavorito && (
+                    <ActionIcon
+                        variant="transparent"
+                        size="sm"
+                        style={{ position: 'absolute', top: 6, right: 6 }}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            onToggleFavorito(dados);
+                        }}
+                        aria-label={isFavorito ? 'Remover dos favoritos' : 'Favoritar curso'}
+                        title={isFavorito ? 'Remover dos favoritos' : 'Favoritar curso'}
+                    >
+                        {isFavorito ? (
+                            <IconStarFilled size={18} color="#fab005" />
+                        ) : (
+                            <IconStar size={18} color="white" />
+                        )}
+                    </ActionIcon>
+                )}
             </Box>
 
             {/* Conteúdo que TEM respiro (padding) */}
@@ -41,7 +66,7 @@ export const CardCurso = ({ dados }) => {
 
                 <Box mt={5}>
                     <Text className={classes.vagasLabel}>Vagas</Text>
-                    <Text className={classes.vagasNumero}>{dados.vagas}</Text>
+                    <Text className={classes.vagasNumero}>{dados.vagas ?? '—'}</Text>
                 </Box>
 
                 <Anchor

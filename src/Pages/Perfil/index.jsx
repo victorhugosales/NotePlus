@@ -18,15 +18,15 @@ import {
     Center,
     TextInput,
     PasswordInput,
-    NumberInput
+    NumberInput,
+    useMantineColorScheme
 } from '@mantine/core';
 import {
     IconChevronRight,
     IconTrophy,
     IconPlus,
     IconSun,
-    IconMoon,
-    IconDeviceDesktop
+    IconMoon
 } from '@tabler/icons-react';
 import classes from '../Perfil/Perfil.module.css'
 import { useState, useEffect } from 'react';
@@ -52,6 +52,7 @@ const MODALIDADES = [
 ];
 
 export const Perfil = () => {
+    const { setColorScheme } = useMantineColorScheme();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editingName, setEditingName] = useState(false);
@@ -144,6 +145,16 @@ export const Perfil = () => {
                 message: err.response?.data?.error || 'Erro ao salvar alterações.',
                 color: 'red',
             });
+        }
+    };
+
+    const handleMudarTema = async (tema) => {
+        setColorScheme(tema);
+        setUser({ ...user, configuracoes: { ...user.configuracoes, tema } });
+        try {
+            await api.put(`/usuario/${user.id}`, { configuracoes: { tema } });
+        } catch {
+            notifications.show({ title: 'Erro ao salvar', message: 'Erro ao salvar o tema.', color: 'red' });
         }
     };
 
@@ -456,23 +467,23 @@ export const Perfil = () => {
                             {/* APARÊNCIA */}
                             <Box>
                                 <Text fw={700} size="lg" mb="md">Aparência</Text>
-                                <SimpleGrid cols={3} spacing="md">
-                                    <UnstyledButton className={`${classes.appearanceBtn} ${user.configuracoes?.tema === 'light' ? classes.activeAppearance : ''}`}>
+                                <SimpleGrid cols={2} spacing="md">
+                                    <UnstyledButton
+                                        className={`${classes.appearanceBtn} ${user.configuracoes?.tema === 'light' ? classes.activeAppearance : ''}`}
+                                        onClick={() => handleMudarTema('light')}
+                                    >
                                         <Group gap="xs">
                                             <IconSun size={18} color="#fab005" />
                                             <Text size="sm" fw={500}>Claro</Text>
                                         </Group>
                                     </UnstyledButton>
-                                    <UnstyledButton className={`${classes.appearanceBtn} ${user.configuracoes?.tema === 'dark' ? classes.activeAppearance : ''}`}>
+                                    <UnstyledButton
+                                        className={`${classes.appearanceBtn} ${user.configuracoes?.tema === 'dark' ? classes.activeAppearance : ''}`}
+                                        onClick={() => handleMudarTema('dark')}
+                                    >
                                         <Group gap="xs">
                                             <IconMoon size={18} />
                                             <Text size="sm" fw={500}>Escuro</Text>
-                                        </Group>
-                                    </UnstyledButton>
-                                    <UnstyledButton className={`${classes.appearanceBtn} ${user.configuracoes?.tema === 'system' ? classes.activeAppearance : ''}`}>
-                                        <Group gap="xs">
-                                            <IconDeviceDesktop size={18} />
-                                            <Text size="sm" fw={500}>Sistema</Text>
                                         </Group>
                                     </UnstyledButton>
                                 </SimpleGrid>

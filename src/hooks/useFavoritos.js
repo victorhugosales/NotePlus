@@ -1,0 +1,71 @@
+import { useState, useEffect, useCallback } from 'react';
+import api from '../services/api';
+import { notifications } from '@mantine/notifications';
+
+// Mesma chave usada nos dois lados (favorito salvo x item de uma busca) pra
+// saber se um card já está favoritado.
+const chave = (item) => `${item.codigo_curso}-${item.sigla_universidade}`;
+
+// Centraliza carregar/favoritar/desfavoritar cursos. Usado em toda página
+// que lista cursos em CardCurso (Home, Cursos) pra manter a estrela e a
+// lista de favoritos em sincronia sem duplicar essa lógica em cada uma.
+export function useFavoritos({ onNaoAutenticado } = {}) {
+    const [favoritos, setFavoritos] = useState([]);
+    const [loading, setLoading] = useState(false);
+
+    const carregarFavoritos = useCallback(async () => {
+        if (!localStorage.getItem('@NotePlus:token')) {
+            setFavoritos([]);
+            return;
+        }
+        setLoading(true);
+        try {
+            const response = await api.get('/favoritos');
+            setFavoritos(response.data);
+        } catch (error) {
+            console.error('Erro ao carregar favoritos', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { carregarFavoritos(); }, [carregarFavoritos]);
+
+    const favoritosSet = new Set(favoritos.map(chave));
+    const isFavorito = (item) => favoritosSet.has(chave(item));
+
+    const toggleFavorito = async (item) => {
+        if (!localStorage.getItem('@NotePlus:token')) {
+            onNaoAutenticado?.();
+            return;
+        }
+
+        const existente = favoritos.find((f) => chave(f) === chave(item));
+
+        try {
+            if (existente) {
+                await api.delete(`/favoritos/${existente.id}`);
+                setFavoritos((atual) => atual.filter((f) => f.id !== existente.id));
+            } else {
+                const response = await api.post('/favoritos', {
+                    codigo_curso: item.codigo_curso,
+                    sigla_universidade: item.sigla_universidade,
+                    curso: item.curso,
+                    nome_universidade: item.nome_universidade,
+                    uf_campus: item.uf_campus,
+                    campus: item.campus,
+                    grau: item.grau,
+                });
+                setFavoritos((atual) => [response.data, ...atual]);
+            }
+        } catch {
+            notifications.show({
+                title: 'Erro',
+                message: 'Não foi possível atualizar seus favoritos.',
+                color: 'red',
+            });
+        }
+    };
+
+    return { favoritos, isFavorito, toggleFavorito, loading, recarregarFavoritos: carregarFavoritos };
+}

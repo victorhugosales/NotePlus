@@ -10,7 +10,8 @@ import {
   SimpleGrid,
   Loader,
   Center,
-  Modal
+  Modal,
+  useMantineColorScheme
 } from '@mantine/core';
 import classes from '../Home/home.module.css';
 import { useState, useEffect } from 'react';
@@ -18,6 +19,9 @@ import { useLocation } from 'react-router-dom';
 import { CardCurso } from '../../components/Card';
 import api from '../../services/api';
 import { useDisclosure } from '@mantine/hooks';
+import { useFavoritos } from '../../hooks/useFavoritos';
+import { LoginRequiredModal } from '../../components/LoginRequiredModal';
+import { NotificacoesButton } from '../../components/NotificacoesButton';
 
 const estadosMap = {
   'AC': 'ACRE', 'AL': 'ALAGOAS', 'AM': 'AMAZONAS', 'AP': 'AMAPÁ', 'BA': 'BAHIA',
@@ -45,7 +49,10 @@ export const Home = () => {
   const [loadingStats, setLoadingStats] = useState(true)
   const location = useLocation();
 
-  const [opened, { open, close }] = useDisclosure(false);
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const [loginModalOpened, { open: openLoginModal, close: closeLoginModal }] = useDisclosure(false);
+  const [favoritosModalOpened, { open: openFavoritosModal, close: closeFavoritosModal }] = useDisclosure(false);
+  const { favoritos, isFavorito, toggleFavorito } = useFavoritos({ onNaoAutenticado: openLoginModal });
 
   //organização dos Dados da DashBoard
   const [stats, setStats] = useState({
@@ -155,6 +162,31 @@ export const Home = () => {
 
   const dadosAgrupados = agruparPorEstado(resultados);
 
+  // Alterna claro/escuro e, se o usuário estiver logado, salva a escolha no
+  // perfil (coluna "tema" em app_configuracoes) pra manter em outros acessos.
+  const handleMudarTema = async () => {
+    const novoTema = colorScheme === 'dark' ? 'light' : 'dark';
+    setColorScheme(novoTema);
+
+    const storedUser = localStorage.getItem('@NotePlus:user');
+    const userData = storedUser ? JSON.parse(storedUser) : null;
+    if (!userData?.id) return;
+
+    try {
+      await api.put(`/usuario/${userData.id}`, { configuracoes: { tema: novoTema } });
+    } catch (error) {
+      console.error('Erro ao salvar tema', error);
+    }
+  };
+
+  const handleAbrirFavoritados = () => {
+    if (!localStorage.getItem('@NotePlus:token')) {
+      openLoginModal();
+      return;
+    }
+    openFavoritosModal();
+  };
+
   //Limpeza do input de pesquisa
   const handleClear = () => {
     setPesquisa('');
@@ -166,26 +198,49 @@ export const Home = () => {
 
   return (
     <Container className={classes.mainContainer}>
+      <LoginRequiredModal
+        opened={loginModalOpened}
+        onClose={closeLoginModal}
+        title="Favoritos e notificações"
+        message="Esse recurso só está disponível para usuários da plataforma. Entre ou cadastre-se para favoritar cursos e receber notificações."
+      />
+
       <Modal
-        opened={opened}
-        onClose={close}
-        title={`Função indisponível`}
+        opened={favoritosModalOpened}
+        onClose={closeFavoritosModal}
+        title="Cursos favoritados"
+        size="lg"
         centered
-        overlayProps={{
-          backgroundOpacity: 0.55,
-          blur: 3,
-        }}
+        overlayProps={{ backgroundOpacity: 0.55, blur: 3 }}
       >
-        <Text size="sm">
-          Em breve
-        </Text>
+        {favoritos.length === 0 ? (
+          <Text size="sm" c="dimmed" ta="center" py="md">
+            Você ainda não favoritou nenhum curso. Clique na estrela de um curso pra guardá-lo aqui.
+          </Text>
+        ) : (
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="lg">
+            {favoritos.map((item) => (
+              <CardCurso
+                key={item.id}
+                dados={item}
+                isFavorito
+                onToggleFavorito={toggleFavorito}
+              />
+            ))}
+          </SimpleGrid>
+        )}
       </Modal>
-      
+
       <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
         <Text className={classes.logo} fw={700} >Visão Geral</Text>
         <Group className={classes.btnsHeader}>
-          <Button className={classes.headerButton} variant="outline" onClick={open}>Mudar Tema</Button>
-          <Button className={classes.headerButton} variant="outline" onClick={open}>Notificações</Button>
+          <Button className={classes.headerButton} variant="outline" onClick={handleMudarTema}>
+            Mudar Tema
+          </Button>
+          <Button className={classes.headerButton} variant="outline" onClick={handleAbrirFavoritados}>
+            Favoritados
+          </Button>
+          <NotificacoesButton onNaoAutenticado={openLoginModal} />
         </Group>
       </Box>
 
@@ -313,7 +368,12 @@ export const Home = () => {
 
                   <SimpleGrid cols={{ base: 2, sm: 2, lg: 3 }} spacing="lg">
                     {itens.map((item) => (
-                      <CardCurso key={item.id_projeto} dados={item} />
+                      <CardCurso
+                        key={item.id_projeto}
+                        dados={item}
+                        isFavorito={isFavorito(item)}
+                        onToggleFavorito={toggleFavorito}
+                      />
                     ))}
                   </SimpleGrid>
                 </Box>
