@@ -3,6 +3,7 @@ import {
   Container,
   Paper,
   Autocomplete,
+  Select,
   Group,
   Text,
   Box,
@@ -28,8 +29,15 @@ const estadosMap = {
   'TO': 'TOCANTINS'
 };
 
+// Opções do filtro de Estado: "CE - CEARÁ", etc. Vazio = todos os estados.
+const opcoesEstado = Object.entries(estadosMap).map(([sigla, nome]) => ({
+  value: sigla,
+  label: `${sigla} - ${nome}`
+}));
+
 export const Home = () => {
   const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('home_lastSearch') || '');
+  const [estado, setEstado] = useState(sessionStorage.getItem('home_lastEstado') || '');
   const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('home_lastResults')) || []);
   const [sugestoes, setSugestoes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -114,7 +122,8 @@ export const Home = () => {
       const response = await api.get('/pesquisar', {
         params: {
           curso: termoFinal.toUpperCase(),
-          global: true
+          global: true,
+          ...(estado && { uf: estado })
         }
       });
 
@@ -133,6 +142,7 @@ export const Home = () => {
       setResultados(final);
       sessionStorage.setItem('home_lastResults', JSON.stringify(final));
       sessionStorage.setItem('home_lastSearch', termoFinal);
+      sessionStorage.setItem('home_lastEstado', estado);
     } catch (error) {
       console.error(error);
     } finally {
@@ -226,6 +236,16 @@ export const Home = () => {
                 </Text>
               )
             }
+          />
+          <Select
+            size='md'
+            w={220}
+            placeholder="Todos os estados"
+            data={opcoesEstado}
+            value={estado || null}
+            onChange={(value) => setEstado(value || '')}
+            searchable
+            clearable
           />
           <Button size="md" onClick={() => handleSearch()}>Pesquisar</Button>
         </Group>
