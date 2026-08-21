@@ -17,7 +17,8 @@ import {
     Loader,
     Center,
     TextInput,
-    PasswordInput
+    PasswordInput,
+    NumberInput
 } from '@mantine/core';
 import {
     IconChevronRight,
@@ -36,15 +37,31 @@ import { notifications } from '@mantine/notifications'
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SENHA_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
 
+// Modalidades de concorrência (Lei de Cotas, 12.711/2012). Mesma lista
+// validada no backend — mantém as duas em sincronia se for editar.
+const MODALIDADES = [
+    { value: 'AC', label: 'AC — Ampla Concorrência' },
+    { value: 'LB_EP', label: 'LB_EP — Baixa renda, Escola Pública' },
+    { value: 'LI_EP', label: 'LI_EP — Renda livre, Escola Pública' },
+    { value: 'LB_PPI', label: 'LB_PPI — Baixa renda, Pretos/Pardos/Indígenas' },
+    { value: 'LI_PPI', label: 'LI_PPI — Renda livre, Pretos/Pardos/Indígenas' },
+    { value: 'LB_PCD', label: 'LB_PCD — Baixa renda, Pessoa com Deficiência' },
+    { value: 'LI_PCD', label: 'LI_PCD — Renda livre, Pessoa com Deficiência' },
+    { value: 'LB_Q', label: 'LB_Q — Baixa renda, Quilombola' },
+    { value: 'LI_Q', label: 'LI_Q — Renda livre, Quilombola' },
+];
+
 export const Perfil = () => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [editingName, setEditingName] = useState(false);
     const [newName, setNewName] = useState('');
 
-    const [editingField, setEditingField] = useState(null); // 'nome', 'email', 'senha' ou null
+    const [editingField, setEditingField] = useState(null); // 'nome', 'email', 'senha', 'nota_enem', 'modalidades' ou null
     const [tempValue, setTempValue] = useState('');
     const [tempPassword, setTempPassword] = useState('');
+    const [tempNotaEnem, setTempNotaEnem] = useState('');
+    const [tempModalidades, setTempModalidades] = useState([]);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('@NotePlus:user');
@@ -92,6 +109,13 @@ export const Perfil = () => {
             });
             return;
         }
+        if (editingField === 'nota_enem' && tempNotaEnem !== '' && tempNotaEnem !== null) {
+            const nota = Number(tempNotaEnem);
+            if (!Number.isFinite(nota) || nota < 0 || nota > 1000) {
+                notifications.show({ title: 'Nota inválida', message: 'Digite uma nota entre 0 e 1000.', color: 'red' });
+                return;
+            }
+        }
 
         try {
             const dataToUpdate = {};
@@ -99,6 +123,10 @@ export const Perfil = () => {
             if (editingField === 'nome') dataToUpdate.nome = tempValue;
             if (editingField === 'email') dataToUpdate.email = tempValue;
             if (editingField === 'senha') dataToUpdate.senha = tempPassword;
+            if (editingField === 'nota_enem') {
+                dataToUpdate.nota_enem = tempNotaEnem === '' ? null : Number(tempNotaEnem);
+            }
+            if (editingField === 'modalidades') dataToUpdate.modalidades = tempModalidades;
 
             await api.put(`/usuario/${user.id}`, dataToUpdate);
 
@@ -286,6 +314,55 @@ export const Perfil = () => {
                                         />
                                         <Group gap="xs">
                                             <Button size="compact-xs" color="orange" onClick={handleUpdate}>Alterar Senha</Button>
+                                            <Button size="compact-xs" variant="subtle" color="gray" onClick={() => setEditingField(null)}>Cancelar</Button>
+                                        </Group>
+                                    </Stack>
+                                </DetailItem>
+                            </Box>
+
+                            <Box mt="md">
+                                <Text fw={700} size="lg" mb="lg">Perfil de Candidato</Text>
+
+                                {/* EDIÇÃO DA NOTA DO ENEM */}
+                                <DetailItem
+                                    label="Nota do ENEM"
+                                    value={user.nota_enem != null ? user.nota_enem : 'Não informada'}
+                                    isEditing={editingField === 'nota_enem'}
+                                    onEdit={() => { setEditingField('nota_enem'); setTempNotaEnem(user.nota_enem ?? ''); }}
+                                >
+                                    <Stack gap="xs">
+                                        <NumberInput
+                                            placeholder="Ex: 756.30"
+                                            min={0}
+                                            max={1000}
+                                            decimalScale={2}
+                                            value={tempNotaEnem}
+                                            onChange={setTempNotaEnem}
+                                        />
+                                        <Group gap="xs">
+                                            <Button size="compact-xs" color="orange" onClick={handleUpdate}>Salvar</Button>
+                                            <Button size="compact-xs" variant="subtle" color="gray" onClick={() => setEditingField(null)}>Cancelar</Button>
+                                        </Group>
+                                    </Stack>
+                                </DetailItem>
+
+                                {/* EDIÇÃO DAS MODALIDADES DE CONCORRÊNCIA */}
+                                <DetailItem
+                                    label="Modalidades que você concorre"
+                                    value={user.modalidades?.length > 0 ? user.modalidades.join(', ') : 'Nenhuma selecionada'}
+                                    isEditing={editingField === 'modalidades'}
+                                    onEdit={() => { setEditingField('modalidades'); setTempModalidades(user.modalidades || []); }}
+                                >
+                                    <Stack gap="xs">
+                                        <Checkbox.Group value={tempModalidades} onChange={setTempModalidades}>
+                                            <Stack gap="xs">
+                                                {MODALIDADES.map((m) => (
+                                                    <Checkbox key={m.value} value={m.value} label={m.label} color="orange" />
+                                                ))}
+                                            </Stack>
+                                        </Checkbox.Group>
+                                        <Group gap="xs">
+                                            <Button size="compact-xs" color="orange" onClick={handleUpdate}>Salvar</Button>
                                             <Button size="compact-xs" variant="subtle" color="gray" onClick={() => setEditingField(null)}>Cancelar</Button>
                                         </Group>
                                     </Stack>
