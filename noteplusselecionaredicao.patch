@@ -1,0 +1,23 @@
+diff --git a/src/Pages/Detalhes/index.jsx b/src/Pages/Detalhes/index.jsx
+index ab1c899..0bec7bf 100644
+--- a/src/Pages/Detalhes/index.jsx
++++ b/src/Pages/Detalhes/index.jsx
+@@ -19,7 +19,7 @@ export const Detalhes = () => {
+     const location = useLocation();
+     const [notas, setNotas] = useState([]);
+     const [infoCurso, setInfoCurso] = useState(null);
+-    const [ano, setAno] = useState('2025');
++    const [ano, setAno] = useState('2026');
+     const queryParams = new URLSearchParams(location.search);
+     const cursoNome = queryParams.get('curso');
+     const uniSigla = queryParams.get('uni');
+@@ -74,7 +74,8 @@ export const Detalhes = () => {
+                         value={ano}
+                         onChange={(event) => setAno(event.currentTarget.value)}
+                         data={[
+-                            { label: '2025 (Atual)', value: '2025' },
++                            { label: '2026 (Atual)', value: '2026' },
++                            { label: '2025', value: '2025' },
+                             { label: '2024 (Em breve)', value: '2024', disabled: true },
+                             { label: '2023 (Em breve)', value: '2023', disabled: true },
+                         ]}
