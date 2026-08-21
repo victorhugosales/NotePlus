@@ -185,7 +185,9 @@ export const Faculdades = () => {
           ) : (
             <Box>
               {Object.keys(dadosAgrupados).length > 0 ? (
-                Object.entries(dadosAgrupados).map(([sigla, itens]) => (
+                Object.keys(dadosAgrupados).sort().map((sigla) => {
+                  const itens = dadosAgrupados[sigla];
+                  return (
                   <Box key={sigla} mb={50}>
                     {/* Cabeçalho do Estado Estilo SISU */}
                     <Group mb="lg" gap="xs">
@@ -201,7 +203,8 @@ export const Faculdades = () => {
                       ))}
                     </SimpleGrid>
                   </Box>
-                ))
+                  );
+                })
               ) : (
                 <Text ta="center" c="dimmed" mt={50}>Nenhuma instituição encontrada.</Text>
               )}

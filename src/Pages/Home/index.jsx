@@ -38,6 +38,7 @@ const opcoesEstado = Object.entries(estadosMap).map(([sigla, nome]) => ({
 export const Home = () => {
   const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('home_lastSearch') || '');
   const [estado, setEstado] = useState(sessionStorage.getItem('home_lastEstado') || '');
+  const [ano, setAno] = useState(sessionStorage.getItem('home_lastAno') || '2026');
   const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('home_lastResults')) || []);
   const [sugestoes, setSugestoes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -123,6 +124,7 @@ export const Home = () => {
         params: {
           curso: termoFinal.toUpperCase(),
           global: true,
+          ano,
           ...(estado && { uf: estado })
         }
       });
@@ -143,6 +145,7 @@ export const Home = () => {
       sessionStorage.setItem('home_lastResults', JSON.stringify(final));
       sessionStorage.setItem('home_lastSearch', termoFinal);
       sessionStorage.setItem('home_lastEstado', estado);
+      sessionStorage.setItem('home_lastAno', ano);
     } catch (error) {
       console.error(error);
     } finally {
@@ -246,6 +249,17 @@ export const Home = () => {
             onChange={(value) => setEstado(value || '')}
             searchable
             clearable
+          />
+          <Select
+            size='md'
+            w={140}
+            data={[
+              { label: '2026 (Atual)', value: '2026' },
+              { label: '2025', value: '2025' },
+            ]}
+            value={ano}
+            onChange={(value) => setAno(value || '2026')}
+            allowDeselect={false}
           />
           <Button size="md" onClick={() => handleSearch()}>Pesquisar</Button>
         </Group>

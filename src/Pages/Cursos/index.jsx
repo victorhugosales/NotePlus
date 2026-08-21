@@ -5,6 +5,7 @@ import {
   Text,
   SimpleGrid,
   Autocomplete,
+  Select,
   Box,
   Loader,
   Center
@@ -14,9 +15,27 @@ import { useState, useEffect } from 'react';
 import { CardCurso } from '../../components/Card';
 import api from '../../services/api'
 
+const estadosMap = {
+  'AC': 'ACRE', 'AL': 'ALAGOAS', 'AM': 'AMAZONAS', 'AP': 'AMAPÁ', 'BA': 'BAHIA',
+  'CE': 'CEARÁ', 'DF': 'DISTRITO FEDERAL', 'ES': 'ESPÍRITO SANTO', 'GO': 'GOIÁS',
+  'MA': 'MARANHÃO', 'MG': 'MINAS GERAIS', 'MS': 'MATO GROSSO DO SUL', 'MT': 'MATO GROSSO',
+  'PA': 'PARÁ', 'PB': 'PARAÍBA', 'PE': 'PERNAMBUCO', 'PI': 'PIAUÍ', 'PR': 'PARANÁ',
+  'RJ': 'RIO DE JANEIRO', 'RN': 'RIO GRANDE DO NORTE', 'RO': 'RONDÔNIA', 'RR': 'RORAIMA',
+  'RS': 'RIO GRANDE DO SUL', 'SC': 'SANTA CATARINA', 'SE': 'SERGIPE', 'SP': 'SÃO PAULO',
+  'TO': 'TOCANTINS'
+};
+
+// Opções do filtro de Estado, já em ordem alfabética (Object.entries segue a
+// ordem de inserção do objeto acima, que já está A-Z).
+const opcoesEstado = Object.entries(estadosMap).map(([sigla, nome]) => ({
+  value: sigla,
+  label: `${sigla} - ${nome}`
+}));
+
 export const Cursos = () => {
 
   const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('lastSearch') || '');
+  const [estado, setEstado] = useState(sessionStorage.getItem('lastEstado') || '');
   const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('lastResults')) || []);
   const [sugestoes, setSugestoes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -59,7 +78,8 @@ export const Cursos = () => {
     try {
       const response = await api.get('/pesquisar', {
         params: {
-          curso: pesquisa.trim().toUpperCase()
+          curso: pesquisa.trim().toUpperCase(),
+          ...(estado && { uf: estado })
         }
       });
 
@@ -81,7 +101,7 @@ export const Cursos = () => {
       setResultados(resultadosSomados);
       sessionStorage.setItem('lastResults', JSON.stringify(resultadosSomados));
       sessionStorage.setItem('lastSearch', pesquisa);
-      setResultados(resultadosSomados);
+      sessionStorage.setItem('lastEstado', estado);
 
     } catch (error) {
       console.error(error);
@@ -133,6 +153,17 @@ export const Cursos = () => {
                 </Text>
               )
             }
+          />
+
+          <Select
+            size="md"
+            w={220}
+            placeholder="Todos os estados"
+            data={opcoesEstado}
+            value={estado || null}
+            onChange={(value) => setEstado(value || '')}
+            searchable
+            clearable
           />
 
           <Button
