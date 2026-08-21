@@ -10,10 +10,30 @@ import {
 import classes from './CardDetails.module.css';
 import { useDisclosure } from '@mantine/hooks';
 
-// Recebemos "dados" como prop
-export const CardDetails = ({ dados }) => {
+// Margem (em pontos) considerada "nota bem próxima do corte" na Análise Inteligente.
+const MARGEM_PROXIMO = 15;
+
+// Recebemos "dados" como prop. analiseAtiva/notaUsuario vêm da tela de Detalhes
+// quando o usuário liga a Análise Inteligente com uma nota do ENEM cadastrada.
+export const CardDetails = ({ dados, analiseAtiva, notaUsuario }) => {
     const [opened, { open, close }] = useDisclosure(false);
     if (!dados) return null;
+
+    let status = null; // 'acima' | 'proximo' | 'abaixo'
+    let diff = null;
+    if (analiseAtiva && notaUsuario !== null && notaUsuario !== undefined) {
+        diff = Number(notaUsuario) - Number(dados.nota_corte);
+        if (diff < 0) status = 'abaixo';
+        else if (diff < MARGEM_PROXIMO) status = 'proximo';
+        else status = 'acima';
+    }
+
+    const STATUS_CONFIG = {
+        acima: { color: '#2f9e44', glow: 'rgba(47, 158, 68, 0.5)', texto: 'Sua nota está acima do corte' },
+        proximo: { color: '#f08c00', glow: 'rgba(240, 140, 0, 0.5)', texto: 'Sua nota está próxima do corte' },
+        abaixo: { color: '#e03131', glow: 'rgba(224, 49, 49, 0.5)', texto: 'Sua nota está abaixo do corte' },
+    };
+    const cfg = status ? STATUS_CONFIG[status] : null;
 
     return (
         <>
@@ -33,7 +53,19 @@ export const CardDetails = ({ dados }) => {
                 </Text>
             </Modal>
 
-            <Card w={215} shadow="sm" padding={0} style={{ marginTop: 20 }} withBorder>
+            <Card
+                w={215}
+                shadow="sm"
+                padding={0}
+                style={{
+                    marginTop: 20,
+                    ...(cfg && {
+                        border: `2px solid ${cfg.color}`,
+                        boxShadow: `0 0 14px ${cfg.glow}`,
+                    }),
+                }}
+                withBorder
+            >
                 <Box bg="#3D4474" p="sm" w={'100%'}>
                     <Group justify="center">
                         <Text align="center" c="white" fw={700} size="lg" >
@@ -68,6 +100,12 @@ export const CardDetails = ({ dados }) => {
                         <Text c="dimmed" size="lg">Corte:</Text>
                         <Text size="xl" fw={700} c="#3D4474">{dados.nota_corte}</Text>
                     </Box>
+
+                    {cfg && (
+                        <Text size="xs" fw={700} ta="center" style={{ color: cfg.color }}>
+                            {cfg.texto} ({diff >= 0 ? '+' : ''}{diff.toFixed(2)})
+                        </Text>
+                    )}
                 </Stack>
             </Card>
         </>
