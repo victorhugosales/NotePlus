@@ -6,7 +6,6 @@ import {
     Box,
     Paper,
     NativeSelect,
-    SimpleGrid,
     Stack,
     Switch,
     Modal
@@ -110,7 +109,7 @@ export const Detalhes = () => {
     }, [notas, analiseAtiva, perfilUsuario]);
 
     return (
-        <Container className={classes.maincontainer}>
+        <Container className={classes.maincontainer} fluid>
             {/* Modal exibido quando um usuário deslogado tenta ligar a Análise Inteligente */}
             <Modal
                 opened={loginModalOpened}
@@ -194,7 +193,7 @@ export const Detalhes = () => {
                     </Group>
                 )}
 
-                <SimpleGrid cols={4} spacing="md" breakpoints={[{ maxWidth: 'sm', cols: 1 }]}>
+                <Box className={classes.resultsGrid}>
                     {notasOrdenadas.map((nota) => (
                         <CardDetails
                             key={nota.id_projeto}
@@ -203,7 +202,7 @@ export const Detalhes = () => {
                             notaUsuario={perfilUsuario?.nota_enem}
                         />
                     ))}
-                </SimpleGrid>
+                </Box>
                 {notas.length === 0 && (
                     <Text ta="center" mt="xl" c="dimmed">Nenhuma nota encontrada para o ano {ano}.</Text>
                 )}

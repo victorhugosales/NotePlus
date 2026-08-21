@@ -31,19 +31,56 @@
 }
 
 .contentStack {
-    padding: 12px;
+    padding: 16px;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-/* ... (seus outros estilos universidadeNome, vagasLabel, etc permanecem iguais) */
+.universidadeNome {
+    font-size: 13px;
+    font-weight: 700;
+    color: #3D4474;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.detalhesTexto {
+    font-size: 12px;
+    color: #868e96;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.grauTexto {
+    font-size: 11px;
+    color: #868e96;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.vagasBox {
+    margin-top: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #f1f3f5;
+}
+
+.vagasLabel {
+    font-size: 11px;
+    color: #868e96;
+}
 
 .vagasNumero {
     font-size: 20px;
     font-weight: 800;
     color: #3D4474;
-    line-height: 1;
+    line-height: 1.3;
 }
 
 .btnVerCurso {

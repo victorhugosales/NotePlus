@@ -54,7 +54,6 @@ export const CardDetails = ({ dados, analiseAtiva, notaUsuario }) => {
             </Modal>
 
             <Card
-                w={215}
                 shadow="sm"
                 padding={0}
                 style={{

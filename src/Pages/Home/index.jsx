@@ -13,6 +13,7 @@ import {
   Modal,
   useMantineColorScheme
 } from '@mantine/core';
+import { IconBook2, IconChartBar, IconBuildingBank, IconMapPin } from '@tabler/icons-react';
 import classes from '../Home/home.module.css';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -197,7 +198,7 @@ export const Home = () => {
   };
 
   return (
-    <Container className={classes.mainContainer}>
+    <Container className={classes.mainContainer} fluid>
       <LoginRequiredModal
         opened={loginModalOpened}
         onClose={closeLoginModal}
@@ -245,25 +246,37 @@ export const Home = () => {
       </Box>
 
       <Paper className={classes.dashboard} shadow="sm" p="md">
-        <Group className={classes.card} position="apart">
-          <Text size='xl' fw={500}>{stats.totalCursos}</Text>
-          <Text >Cursos Disponíveis</Text>
-        </Group>
+        <Box className={classes.statCard}>
+          <IconBook2 size={26} className={classes.statIcon} stroke={1.5} />
+          <Box>
+            <Text className={classes.statNumber}>{stats.totalCursos}</Text>
+            <Text className={classes.statLabel}>Cursos Disponíveis</Text>
+          </Box>
+        </Box>
 
-        <Group className={classes.card} position="apart">
-          <Text size='xl' fw={500}>{stats.mediaCursos}</Text>
-          <Text >Cursos por Faculdade</Text>
-        </Group>
+        <Box className={classes.statCard}>
+          <IconChartBar size={26} className={classes.statIcon} stroke={1.5} />
+          <Box>
+            <Text className={classes.statNumber}>{stats.mediaCursos}</Text>
+            <Text className={classes.statLabel}>Cursos por Faculdade</Text>
+          </Box>
+        </Box>
 
-        <Group className={classes.card} position="apart">
-          <Text size='xl' fw={500}>{stats.totalFaculdades}</Text>
-          <Text >Faculdades Públicas</Text>
-        </Group>
+        <Box className={classes.statCard}>
+          <IconBuildingBank size={26} className={classes.statIcon} stroke={1.5} />
+          <Box>
+            <Text className={classes.statNumber}>{stats.totalFaculdades}</Text>
+            <Text className={classes.statLabel}>Faculdades Públicas</Text>
+          </Box>
+        </Box>
 
-        <Group className={classes.card} position="apart">
-          <Text size='xl' fw={500}>{stats.totalEstados}</Text>
-          <Text >Total de Estados cadastrados</Text>
-        </Group>
+        <Box className={classes.statCard}>
+          <IconMapPin size={26} className={classes.statIcon} stroke={1.5} />
+          <Box>
+            <Text className={classes.statNumber}>{stats.totalEstados}</Text>
+            <Text className={classes.statLabel}>Estados Cadastrados</Text>
+          </Box>
+        </Box>
       </Paper>
 
       {/* SEARCHINPUT */}
@@ -366,7 +379,7 @@ export const Home = () => {
                     <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
                   </Group>
 
-                  <SimpleGrid cols={{ base: 2, sm: 2, lg: 3 }} spacing="lg">
+                  <Box className={classes.resultsGrid}>
                     {itens.map((item) => (
                       <CardCurso
                         key={item.id_projeto}
@@ -375,7 +388,7 @@ export const Home = () => {
                         onToggleFavorito={toggleFavorito}
                       />
                     ))}
-                  </SimpleGrid>
+                  </Box>
                 </Box>
               );
             })

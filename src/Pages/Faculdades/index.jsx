@@ -3,7 +3,6 @@ import {
   Container,
   Group,
   Text,
-  SimpleGrid,
   Box,
   Autocomplete,
   Loader,
@@ -135,7 +134,7 @@ export const Faculdades = () => {
   };
 
   return (
-    <Container className={classes.mainContainer}>
+    <Container className={classes.mainContainer} fluid>
       <Group mt={20}>
         {/* Headder */}
         <Box>
@@ -197,11 +196,11 @@ export const Faculdades = () => {
                       <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
                     </Group>
 
-                    <SimpleGrid cols={3} spacing="lg">
+                    <Box className={classes.resultsGrid}>
                       {itens.map((item) => (
                         <CardCurso key={item.id_projeto} dados={item} />
                       ))}
-                    </SimpleGrid>
+                    </Box>
                   </Box>
                   );
                 })

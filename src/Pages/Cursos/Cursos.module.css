@@ -3,5 +3,20 @@
     min-height: 100vh;
     padding-top: 20px;
     padding-bottom: 20px;
-    margin-left: 35px;
+}
+
+/* Cresce até o espaço disponível, mas nunca deixa o card ficar mais
+   estreito que 240px — evita lotar demais as colunas em telas largas. */
+.resultsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .resultsGrid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+    }
 }

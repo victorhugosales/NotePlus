@@ -3,7 +3,6 @@
     width: 100%;
     min-height: 100vh;
     padding: 20px;
-    margin-left: 35px;
     box-sizing: border-box;
 }
 
@@ -19,15 +18,47 @@
 .dashboard {
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     margin-top: 20px;
-    gap: 20px;
+    gap: 16px;
 }
 
-.card {
+.statCard {
+    flex: 1;
+    min-width: 200px;
     display: flex;
-    justify-content: left;
-    padding: 20px;
-    border-radius: 8px;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 20px;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    background-color: #f8f9fb;
+}
+
+.statIcon {
+    color: #3D4474;
+    flex-shrink: 0;
+}
+
+.statNumber {
+    font-size: 22px;
+    font-weight: 800;
+    color: #3D4474;
+    line-height: 1.2;
+}
+
+.statLabel {
+    font-size: 12px;
+    color: #868e96;
+}
+
+/* Grid dos cards de resultado: cresce até o espaço disponível, mas nunca
+   deixa o card ficar mais estreito que 240px — evita a lotação de colunas
+   demais em telas largas que deixava tudo espremido. */
+.resultsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
 }
 
 /* --- RESPONSIVIDADE (MOBILE E TABLET) --- */
@@ -61,13 +92,11 @@
         border-radius: 10px;
     }
 
-    .card {
+    .statCard {
         width: 100%;
-        justify-content: space-between;
-        padding: 15px !important;
+        min-width: 0;
+        padding: 12px 15px !important;
         background-color: rgba(240, 248, 255, 0.514);
-        
-
     }
 
     /* Ajuste da Área de Pesquisa */
@@ -84,8 +113,7 @@
     }
 
     /* --- OS CARDS LADO A LADO --- */
-    /* Seleciona o SimpleGrid dos resultados */
-    div[class*="mantine-SimpleGrid-root"] {
+    .resultsGrid {
         grid-template-columns: repeat(2, 1fr) !important; /* FORÇA 2 COLUNAS */
         gap: 10px !important; /* Espaço reduzido para caber melhor */
     }

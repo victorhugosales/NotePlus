@@ -51,7 +51,7 @@ export const CardCurso = ({ dados, isFavorito, onToggleFavorito }) => {
             </Box>
 
             {/* Conteúdo que TEM respiro (padding) */}
-            <Stack className={classes.contentStack} gap={0}>
+            <Stack className={classes.contentStack} gap={4}>
                 <Text className={classes.universidadeNome}>
                     {dados.sigla_universidade} - {dados.nome_universidade}
                 </Text>
@@ -64,7 +64,7 @@ export const CardCurso = ({ dados, isFavorito, onToggleFavorito }) => {
                     {dados.grau}
                 </Text>
 
-                <Box mt={5}>
+                <Box className={classes.vagasBox}>
                     <Text className={classes.vagasLabel}>Vagas</Text>
                     <Text className={classes.vagasNumero}>{dados.vagas ?? '—'}</Text>
                 </Box>
@@ -79,10 +79,10 @@ export const CardCurso = ({ dados, isFavorito, onToggleFavorito }) => {
                         fullWidth
                         variant="light"
                         radius="md"
-                        size="xs"
-                        mt={10}
+                        size="sm"
+                        mt={12}
                         styles={{
-                            root: { height: '30px', fontSize: '10px' }
+                            root: { height: '36px', fontSize: '13px', fontWeight: 600 }
                         }}
                     >
                         Ver Curso

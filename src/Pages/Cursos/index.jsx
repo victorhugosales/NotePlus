@@ -3,7 +3,6 @@ import {
   Container,
   Group,
   Text,
-  SimpleGrid,
   Autocomplete,
   Select,
   Box,
@@ -125,7 +124,7 @@ export const Cursos = () => {
   };
 
   return (
-    <Container className={classes.mainContainer}>
+    <Container className={classes.mainContainer} fluid>
       <LoginRequiredModal
         opened={loginModalOpened}
         onClose={closeLoginModal}
@@ -191,7 +190,7 @@ export const Cursos = () => {
         {loading ? (
           <Center mt={50}><Loader color="blue" /></Center>
         ) : (
-          <SimpleGrid cols={3} spacing="lg">
+          <Box className={classes.resultsGrid}>
             {resultados.length > 0 ? (
               resultados.map((item) => (
                 <CardCurso
@@ -202,11 +201,11 @@ export const Cursos = () => {
                 />
               ))
             ) : (
-              <Text c="dimmed" ta="center" style={{ gridColumn: '1 / span 3' }}>
+              <Text c="dimmed" ta="center" style={{ gridColumn: '1 / -1' }}>
                 {pesquisa ? 'Nenhum curso encontrado para essa busca.' : 'Pesquise um curso para ver as notas de corte.'}
               </Text>
             )}
-          </SimpleGrid>
+          </Box>
         )}
       </Group>
     </Container>
