@@ -19,8 +19,8 @@
 }
 
 .tab[data-active] {
-  color: #4c6ef5; 
-  border-bottom: 3px solid #4c6ef5 !important; 
+  color: #05AE76;
+  border-bottom: 3px solid #05AE76 !important;
 }
 
 .tab:hover {
@@ -58,8 +58,8 @@
 }
 
 .activeAppearance {
-    border: 2px solid #fab005; 
-    background-color: #fff9db; 
+    border: 2px solid #05AE76;
+    background-color: #E7F6EE;
 }
 
 .line {

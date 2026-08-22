@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Button, Modal, Stack, Text, Group, Box, Indicator, Loader, Center } from '@mantine/core';
+import { IconBell } from '@tabler/icons-react';
 import api from '../../services/api';
 
 const formatarData = (isoString) => {
@@ -16,7 +17,7 @@ const formatarData = (isoString) => {
 // lidas e, ao clicar, abre a lista (curso em alta, curso parecido com um
 // favorito, etc — geradas pelo backend a cada 12h para quem habilitou nas
 // configurações).
-export const NotificacoesButton = ({ onNaoAutenticado }) => {
+export const NotificacoesButton = ({ onNaoAutenticado, className }) => {
     const [opened, setOpened] = useState(false);
     const [notificacoes, setNotificacoes] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -99,7 +100,9 @@ export const NotificacoesButton = ({ onNaoAutenticado }) => {
             </Modal>
 
             <Indicator disabled={naoLidas === 0} label={naoLidas} size={16} color="red" offset={4}>
-                <Button variant="outline" onClick={handleAbrir}>Notificações</Button>
+                <Button className={className} variant="outline" leftSection={<IconBell size={16} />} onClick={handleAbrir}>
+                    Notificações
+                </Button>
             </Indicator>
         </>
     );

@@ -13,7 +13,7 @@ import {
   Modal,
   useMantineColorScheme
 } from '@mantine/core';
-import { IconBook2, IconChartBar, IconBuildingBank, IconMapPin } from '@tabler/icons-react';
+import { IconBook2, IconChartBar, IconBuildingBank, IconMapPin, IconPalette, IconStar } from '@tabler/icons-react';
 import classes from '../Home/home.module.css';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -235,43 +235,61 @@ export const Home = () => {
       <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
         <Text className={classes.logo} fw={700} >Visão Geral</Text>
         <Group className={classes.btnsHeader}>
-          <Button className={classes.headerButton} variant="outline" onClick={handleMudarTema}>
+          <Button
+            className={classes.headerButton}
+            variant="outline"
+            leftSection={<IconPalette size={16} />}
+            onClick={handleMudarTema}
+          >
             Mudar Tema
           </Button>
-          <Button className={classes.headerButton} variant="outline" onClick={handleAbrirFavoritados}>
+          <Button
+            className={classes.headerButton}
+            variant="outline"
+            leftSection={<IconStar size={16} />}
+            onClick={handleAbrirFavoritados}
+          >
             Favoritados
           </Button>
-          <NotificacoesButton onNaoAutenticado={openLoginModal} />
+          <NotificacoesButton onNaoAutenticado={openLoginModal} className={classes.headerButton} />
         </Group>
       </Box>
 
       <Paper className={classes.dashboard} shadow="sm" p="md">
-        <Box className={classes.statCard}>
-          <IconBook2 size={26} className={classes.statIcon} stroke={1.5} />
+        <Box className={`${classes.statCard} ${classes.statCardBlue}`}>
+          <Box className={`${classes.statIconBadge} ${classes.statIconBadgeBlue}`}>
+            <IconBook2 size={22} stroke={1.5} />
+          </Box>
           <Box>
             <Text className={classes.statNumber}>{stats.totalCursos}</Text>
             <Text className={classes.statLabel}>Cursos Disponíveis</Text>
           </Box>
         </Box>
 
-        <Box className={classes.statCard}>
-          <IconChartBar size={26} className={classes.statIcon} stroke={1.5} />
+        <Box className={`${classes.statCard} ${classes.statCardGreen}`}>
+          <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGreen}`}>
+            <IconChartBar size={22} stroke={1.5} />
+          </Box>
           <Box>
             <Text className={classes.statNumber}>{stats.mediaCursos}</Text>
             <Text className={classes.statLabel}>Cursos por Faculdade</Text>
           </Box>
         </Box>
 
-        <Box className={classes.statCard}>
-          <IconBuildingBank size={26} className={classes.statIcon} stroke={1.5} />
+        <Box className={`${classes.statCard} ${classes.statCardPurple}`}>
+          <Box className={`${classes.statIconBadge} ${classes.statIconBadgePurple}`}>
+            <IconBuildingBank size={22} stroke={1.5} />
+          </Box>
           <Box>
             <Text className={classes.statNumber}>{stats.totalFaculdades}</Text>
             <Text className={classes.statLabel}>Faculdades Públicas</Text>
           </Box>
         </Box>
 
-        <Box className={classes.statCard}>
-          <IconMapPin size={26} className={classes.statIcon} stroke={1.5} />
+        <Box className={`${classes.statCard} ${classes.statCardGold}`}>
+          <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGold}`}>
+            <IconMapPin size={22} stroke={1.5} />
+          </Box>
           <Box>
             <Text className={classes.statNumber}>{stats.totalEstados}</Text>
             <Text className={classes.statLabel}>Estados Cadastrados</Text>

@@ -64,7 +64,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
             {!collapsed && <Text className={classes.logo}>NotePlus+</Text>}
             <ActionIcon
               variant="subtle"
-              color="gray"
+              color="gray.4"
               onClick={onToggleCollapse}
               aria-label={collapsed ? 'Expandir menu' : 'Retrair menu'}
               title={collapsed ? 'Expandir menu' : 'Retrair menu'}
@@ -96,6 +96,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
                   color="red"
                   radius="md"
                   size="sm"
+                  className={classes.logoutBtn}
                   px={collapsed ? 0 : undefined}
                   leftSection={!collapsed ? <IconLogout size={18} stroke={1.5} /> : undefined}
                   onClick={handleLogout}

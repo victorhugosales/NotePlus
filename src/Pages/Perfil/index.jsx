@@ -233,7 +233,7 @@ export const Perfil = () => {
     }
 
     return (
-        <Container className={classes.mainContainer} fluid w={960}>
+        <Container className={classes.mainContainer} fluid maw={1100}>
             <Stack mt={20}>
                 {/* HEADER */}
                 <Text fw={700} size="24px">Perfil</Text>
@@ -506,12 +506,12 @@ export const Perfil = () => {
     );
 }
 const DetailItem = ({ label, value, onEdit, isEditing, children }) => (
-    <Box mb="md">
-        <Divider mb="sm" opacity={0.5} />
+    <Box mb="lg" py={4}>
+        <Divider mb="md" opacity={0.5} />
         <Group justify="space-between" align="flex-start">
             <Box style={{ flex: 1 }}>
                 <Text size="xs" fw={700}>{label}</Text>
-                {isEditing ? children : <Text size="sm" c="dimmed">{value}</Text>}
+                {isEditing ? children : <Text size="sm" c="dimmed" mt={4}>{value}</Text>}
             </Box>
 
             {!isEditing && (

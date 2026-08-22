@@ -1,5 +1,4 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 
 // Layout e Paginas
@@ -24,7 +23,7 @@ export const RequireAuth = () => {
 
 export const AppRoutes = () => {
   return (
-    <MantineProvider>
+    <>
       <Notifications />
       <BrowserRouter>
         <Routes>
@@ -47,6 +46,6 @@ export const AppRoutes = () => {
 
         </Routes>
       </BrowserRouter>
-    </MantineProvider>
+    </>
   );
 };

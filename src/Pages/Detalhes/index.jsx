@@ -8,8 +8,12 @@ import {
     NativeSelect,
     Stack,
     Switch,
-    Modal
+    Modal,
+    SegmentedControl,
+    Loader,
+    Center
 } from '@mantine/core';
+import { BarChart, LineChart } from '@mantine/charts';
 import classes from '../Detalhes/Detalhes.module.css'
 import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -17,6 +21,13 @@ import api from '../../services/api';
 import { CardDetails } from '../../components/CardDetails'
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+
+// Anos disponíveis pra comparação na Visão Avançada. Mesma lista de opções
+// habilitadas do seletor de edição do SISU (2024/2023 ainda não têm dados).
+const ANOS_COMPARACAO = ['2025', '2026'];
+
+// Paleta pra colorir uma linha por modalidade no gráfico de evolução.
+const CORES_LINHAS = ['#05AE76', '#4C6EF5', '#b8890a', '#E64980', '#5C5FE8', '#073636', '#03AD74', '#1098AD'];
 
 export const Detalhes = () => {
     const location = useLocation();
@@ -33,6 +44,13 @@ export const Detalhes = () => {
     const [perfilUsuario, setPerfilUsuario] = useState(null);
     const [analiseAtiva, setAnaliseAtiva] = useState(false);
     const [loginModalOpened, { open: openLoginModal, close: closeLoginModal }] = useDisclosure(false);
+
+    // Visão Avançada: dashboard de gráficos (nota/vagas por modalidade e
+    // evolução entre edições). Busca sob demanda, só quando o usuário troca
+    // pra essa visão, e guarda em cache pra não repetir a chamada.
+    const [visao, setVisao] = useState('simplificada');
+    const [comparativoAnos, setComparativoAnos] = useState(null);
+    const [carregandoComparativo, setCarregandoComparativo] = useState(false);
 
     useEffect(() => {
         const fetchDetalhes = async () => {
@@ -76,6 +94,33 @@ export const Detalhes = () => {
             .catch((error) => console.error("Erro ao buscar perfil do usuário", error));
     }, []);
 
+    // Busca as notas de todos os anos disponíveis pra montar o gráfico de
+    // evolução — só na primeira vez que o usuário abre a Visão Avançada.
+    useEffect(() => {
+        if (visao !== 'avancada' || comparativoAnos || !(cursoCodigo || cursoNome)) return;
+
+        const fetchComparativo = async () => {
+            setCarregandoComparativo(true);
+            try {
+                const respostas = await Promise.all(
+                    ANOS_COMPARACAO.map((anoRef) => api.get('/pesquisar', {
+                        params: { codigo: cursoCodigo, curso: cursoNome, universidade: uniSigla, ano: anoRef }
+                    }))
+                );
+
+                const porAno = {};
+                ANOS_COMPARACAO.forEach((anoRef, i) => { porAno[anoRef] = respostas[i].data; });
+                setComparativoAnos(porAno);
+            } catch (error) {
+                console.error("Erro ao buscar comparativo entre edições", error);
+            } finally {
+                setCarregandoComparativo(false);
+            }
+        };
+
+        fetchComparativo();
+    }, [visao, comparativoAnos, cursoCodigo, cursoNome, uniSigla]);
+
     const navigate = useNavigate();
 
     const handleToggleAnalise = () => {
@@ -108,6 +153,40 @@ export const Detalhes = () => {
         });
     }, [notas, analiseAtiva, perfilUsuario]);
 
+    // Gráficos de barra da edição atual: reaproveitam as notas já carregadas.
+    const dadosNotaAtual = useMemo(() => (
+        notas.map((n) => ({ modalidade: n.modalidade, nota_corte: Number(n.nota_corte) }))
+    ), [notas]);
+
+    const dadosVagasAtual = useMemo(() => (
+        notas.map((n) => ({ modalidade: n.modalidade, vagas: Number(n.vagas) }))
+    ), [notas]);
+
+    // Gráfico de linha comparando a nota de corte de cada modalidade entre
+    // as edições disponíveis (ex.: AC em 2025 x AC em 2026).
+    const { dadosComparativo, modalidadesComparativo } = useMemo(() => {
+        if (!comparativoAnos) return { dadosComparativo: [], modalidadesComparativo: [] };
+
+        const modalidadesSet = new Set();
+        ANOS_COMPARACAO.forEach((anoRef) => {
+            (comparativoAnos[anoRef] || []).forEach((n) => {
+                if (Number(n.vagas) > 0 && Number(n.nota_corte) > 0) modalidadesSet.add(n.modalidade);
+            });
+        });
+
+        const linhas = ANOS_COMPARACAO.map((anoRef) => {
+            const linha = { ano: anoRef };
+            (comparativoAnos[anoRef] || []).forEach((n) => {
+                if (Number(n.vagas) > 0 && Number(n.nota_corte) > 0) {
+                    linha[n.modalidade] = Number(n.nota_corte);
+                }
+            });
+            return linha;
+        });
+
+        return { dadosComparativo: linhas, modalidadesComparativo: [...modalidadesSet] };
+    }, [comparativoAnos]);
+
     return (
         <Container className={classes.maincontainer} fluid>
             {/* Modal exibido quando um usuário deslogado tenta ligar a Análise Inteligente */}
@@ -138,6 +217,16 @@ export const Detalhes = () => {
                     </Stack>
 
                     <Group align="flex-end" gap="lg">
+                        <SegmentedControl
+                            value={visao}
+                            onChange={setVisao}
+                            color="brand"
+                            data={[
+                                { label: 'Visão Simplificada', value: 'simplificada' },
+                                { label: 'Visão Avançada', value: 'avancada' },
+                            ]}
+                        />
+
                         <Switch
                             label="Análise Inteligente"
                             checked={analiseAtiva}
@@ -172,41 +261,109 @@ export const Detalhes = () => {
                 </Stack>
             </Paper>
 
-            <Box mt={20}>
-                <Text size='xl' mb="md" fw={500}>Notas de Corte por Modalidade - SISU {ano}</Text>
+            {visao === 'simplificada' ? (
+                <Box mt={20}>
+                    <Text size='xl' mb="md" fw={500}>Notas de Corte por Modalidade - SISU {ano}</Text>
 
-                {/* Guia rápido das cores da Análise Inteligente */}
-                {analiseAtiva && (
-                    <Group gap="lg" mb="md">
-                        <Group gap={6}>
-                            <Box w={12} h={12} bg="#2f9e44" style={{ borderRadius: '50%' }} />
-                            <Text size="xs" c="dimmed">Sua nota está acima do corte</Text>
+                    {/* Guia rápido das cores da Análise Inteligente */}
+                    {analiseAtiva && (
+                        <Group gap="lg" mb="md">
+                            <Group gap={6}>
+                                <Box w={12} h={12} bg="#2f9e44" style={{ borderRadius: '50%' }} />
+                                <Text size="xs" c="dimmed">Sua nota está acima do corte</Text>
+                            </Group>
+                            <Group gap={6}>
+                                <Box w={12} h={12} bg="#f08c00" style={{ borderRadius: '50%' }} />
+                                <Text size="xs" c="dimmed">Sua nota está próxima do corte</Text>
+                            </Group>
+                            <Group gap={6}>
+                                <Box w={12} h={12} bg="#e03131" style={{ borderRadius: '50%' }} />
+                                <Text size="xs" c="dimmed">Sua nota está abaixo do corte</Text>
+                            </Group>
                         </Group>
-                        <Group gap={6}>
-                            <Box w={12} h={12} bg="#f08c00" style={{ borderRadius: '50%' }} />
-                            <Text size="xs" c="dimmed">Sua nota está próxima do corte</Text>
-                        </Group>
-                        <Group gap={6}>
-                            <Box w={12} h={12} bg="#e03131" style={{ borderRadius: '50%' }} />
-                            <Text size="xs" c="dimmed">Sua nota está abaixo do corte</Text>
-                        </Group>
-                    </Group>
-                )}
+                    )}
 
-                <Box className={classes.resultsGrid}>
-                    {notasOrdenadas.map((nota) => (
-                        <CardDetails
-                            key={nota.id_projeto}
-                            dados={nota}
-                            analiseAtiva={analiseAtiva}
-                            notaUsuario={perfilUsuario?.nota_enem}
-                        />
-                    ))}
+                    <Box className={classes.resultsGrid}>
+                        {notasOrdenadas.map((nota) => (
+                            <CardDetails
+                                key={nota.id_projeto}
+                                dados={nota}
+                                analiseAtiva={analiseAtiva}
+                                notaUsuario={perfilUsuario?.nota_enem}
+                            />
+                        ))}
+                    </Box>
+                    {notas.length === 0 && (
+                        <Text ta="center" mt="xl" c="dimmed">Nenhuma nota encontrada para o ano {ano}.</Text>
+                    )}
                 </Box>
-                {notas.length === 0 && (
-                    <Text ta="center" mt="xl" c="dimmed">Nenhuma nota encontrada para o ano {ano}.</Text>
-                )}
-            </Box>
+            ) : (
+                <Box mt={20}>
+                    <Text size='xl' mb="md" fw={500}>Análise Gráfica - {cursoNome}</Text>
+
+                    {carregandoComparativo && !comparativoAnos ? (
+                        <Center py="xl"><Loader color="brand" /></Center>
+                    ) : (
+                        <Stack gap="xl">
+                            <Paper withBorder radius="md" p="lg">
+                                <Text fw={600} mb="md">Nota de corte por modalidade — SISU {ano}</Text>
+                                {dadosNotaAtual.length > 0 ? (
+                                    <BarChart
+                                        h={300}
+                                        data={dadosNotaAtual}
+                                        dataKey="modalidade"
+                                        series={[{ name: 'nota_corte', color: 'brand.6', label: 'Nota de corte' }]}
+                                        tickLine="y"
+                                        withLegend
+                                    />
+                                ) : (
+                                    <Text c="dimmed" size="sm">Sem dados para o ano {ano}.</Text>
+                                )}
+                            </Paper>
+
+                            <Paper withBorder radius="md" p="lg">
+                                <Text fw={600} mb="md">Vagas ofertadas por modalidade — SISU {ano}</Text>
+                                {dadosVagasAtual.length > 0 ? (
+                                    <BarChart
+                                        h={300}
+                                        data={dadosVagasAtual}
+                                        dataKey="modalidade"
+                                        series={[{ name: 'vagas', color: 'blue.6', label: 'Vagas' }]}
+                                        tickLine="y"
+                                        withLegend
+                                    />
+                                ) : (
+                                    <Text c="dimmed" size="sm">Sem dados para o ano {ano}.</Text>
+                                )}
+                            </Paper>
+
+                            <Paper withBorder radius="md" p="lg">
+                                <Text fw={600} mb="md">
+                                    Evolução da nota de corte: {ANOS_COMPARACAO.join(' → ')}
+                                </Text>
+                                {modalidadesComparativo.length > 0 ? (
+                                    <LineChart
+                                        h={320}
+                                        data={dadosComparativo}
+                                        dataKey="ano"
+                                        series={modalidadesComparativo.map((m, i) => ({
+                                            name: m,
+                                            color: CORES_LINHAS[i % CORES_LINHAS.length],
+                                        }))}
+                                        curveType="linear"
+                                        withLegend
+                                        connectNulls={false}
+                                    />
+                                ) : (
+                                    <Text c="dimmed" size="sm">
+                                        Não há dados de {ANOS_COMPARACAO.join(' e ')} suficientes pra comparar esse curso ainda.
+                                    </Text>
+                                )}
+                            </Paper>
+                        </Stack>
+                    )}
+                </Box>
+            )}
         </Container>
     );
 }

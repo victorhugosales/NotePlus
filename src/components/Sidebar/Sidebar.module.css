@@ -13,16 +13,24 @@
     justify-content: center;
 }
 
+/* Sidebar sempre escura, independente do tema claro/escuro do resto do
+   app (referência visual: navy #081828 com destaques em verde). */
+.sidebarCard {
+    background-color: #081828 !important;
+    border-color: #081828 !important;
+}
+
 .logo {
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 20px;
+    color: #ffffff;
 }
 
 .propaganda {
-    background: linear-gradient(135deg, #eef9ff 0%, #f3efff 100%);
+    background: rgba(255, 255, 255, 0.06);
     padding: 20px 15px;
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -30,27 +38,25 @@
 }
 
 .propagandaTitle {
-    color: #2c3e50; 
+    color: #ffffff;
     line-height: 1.2;
 }
 
 .propagandaBtn {
-    background-color: #ff6b52 !important; 
-    color: white;
-    border: 1.5px solid #2c3e50; 
-    box-shadow: 0px 4px 0px #2c3e50; 
+    background-color: #05AE76 !important;
+    color: #081828;
+    border: none;
     font-weight: 700;
-    transition: transform 0.1s;
+    transition: background-color 0.15s ease;
 }
 
-.propagandaBtn:active {
-    transform: translateY(2px);
-    box-shadow: 0px 2px 0px #2c3e50;
+.propagandaBtn:hover {
+    background-color: #03AD74 !important;
 }
 
 .link {
     text-decoration: none !important;
-    color: #4a5568;
+    color: #aab4c4;
     padding: 8px 12px;
     border-radius: 8px;
     display: flex;
@@ -59,18 +65,28 @@
 }
 
 .link:hover {
-    background-color: #f1f3f5;
+    background-color: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
     text-decoration: none !important;
 }
 
 .link:global(.active) {
-    background-color: #eef9ff !important;
-    color: #3D4474 !important;
+    background-color: rgba(5, 174, 118, 0.18) !important;
+    color: #05AE76 !important;
     font-weight: 700;
 }
 
 .link:global(.active) * {
-    color: #3D4474 !important;
+    color: #05AE76 !important;
+}
+
+.logoutBtn {
+    background-color: rgba(255, 255, 255, 0.06) !important;
+    color: #ff8787 !important;
+}
+
+.logoutBtn:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 @media (max-width: 768px) {

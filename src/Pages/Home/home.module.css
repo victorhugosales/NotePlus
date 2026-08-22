@@ -32,18 +32,34 @@
     padding: 16px 20px;
     border: 1px solid #e9ecef;
     border-radius: 10px;
-    background-color: #f8f9fb;
 }
 
-.statIcon {
-    color: #3D4474;
+/* Cada card usa um dos 4 tons pastel da paleta, com um "badge" de ícone na
+   mesma família de cor — referência visual passada pelo usuário. */
+.statCardBlue { background-color: #ECF2FE; }
+.statCardGreen { background-color: #E7F6EE; }
+.statCardPurple { background-color: #EAEDFF; }
+.statCardGold { background-color: #FFFADD; }
+
+.statIconBadge {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
 }
+
+.statIconBadgeBlue { background-color: #d8e4fd; color: #4C6EF5; }
+.statIconBadgeGreen { background-color: #cdeedd; color: #05AE76; }
+.statIconBadgePurple { background-color: #d7dbff; color: #5C5FE8; }
+.statIconBadgeGold { background-color: #fbf2b8; color: #b8890a; }
 
 .statNumber {
     font-size: 22px;
     font-weight: 800;
-    color: #3D4474;
+    color: #081828;
     line-height: 1.2;
 }
 
@@ -96,7 +112,6 @@
         width: 100%;
         min-width: 0;
         padding: 12px 15px !important;
-        background-color: rgba(240, 248, 255, 0.514);
     }
 
     /* Ajuste da Área de Pesquisa */
