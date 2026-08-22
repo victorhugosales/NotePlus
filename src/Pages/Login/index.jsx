@@ -1,32 +1,28 @@
 import {
   Button,
-  Container,
-  Paper,
   PasswordInput,
   TextInput,
-  Image,
   Group,
   Anchor,
-  Text,
+  Checkbox,
+  Divider,
 } from '@mantine/core';
-import { IconArrowLeft } from '@tabler/icons-react';
-import classes from './login.module.css';
-import goo from '../../assets/img01.png'
-import { NavLink, useNavigate } from "react-router-dom";
+import { IconArrowRight, IconBrandGoogle } from '@tabler/icons-react';
+import { AuthLayout } from '../../components/AuthLayout';
+import { AuthTabs } from '../../components/AuthTabs';
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react'
 import { notifications } from '@mantine/notifications';
-import api from '../../services/api'; // Importe sua configuração do axios
+import api from '../../services/api';
 
 export const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  // 1. Estados para capturar o que o usuário digita
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
 
   const handleEntrar = async () => {
-    // Validação básica
     if (!email || !senha) {
       notifications.show({
         title: 'Campos obrigatórios',
@@ -39,18 +35,13 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      // 2. Fazendo a chamada real para o Back
       const response = await api.post('/login', { email, senha });
 
-      // 3. Salvando os dados que o seu AuthController retorna
-      // (token e o objeto user com id, nome, etc)
       localStorage.setItem('@NotePlus:token', response.data.token);
       localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
 
-      // 4. Se deu tudo certo, vai para a Home
       navigate('/');
     } catch (err) {
-      // Pega a mensagem de erro vinda do backend (ex: "E-mail ou senha inválidos")
       const mensagem = err.response?.data?.error || "Erro ao tentar logar.";
       notifications.show({
         title: 'Não foi possível entrar',
@@ -62,58 +53,74 @@ export const Login = () => {
     }
   };
 
-  return (
-    <Container size={420} my={80} justify='center'>
-      <Anchor component={NavLink} to="/" underline="never" c="dimmed">
-        <Group gap={4} align="center">
-          <IconArrowLeft size={16} stroke={1.5} />
-          <Text size="sm">Voltar</Text>
-        </Group>
-      </Anchor>
+  // Recursos que ainda não existem no backend (login social, recuperação
+  // de senha) — mostram um aviso em vez de fingir que funcionam.
+  const avisarEmBreve = (mensagem) => {
+    notifications.show({ title: 'Em breve', message: mensagem, color: 'blue' });
+  };
 
-      <Group justify='center'>
-        <Text className={classes.logo}>NotePlus+</Text>
+  return (
+    <AuthLayout
+      eyebrow="Área do candidato"
+      title="Bem-vindo de volta."
+      subtitle="Entre para acompanhar as notas de corte do SISU e comparar suas chances por curso e instituição."
+    >
+      <AuthTabs value="entrar" />
+
+      <TextInput
+        label="E-mail"
+        placeholder="voce@email.com"
+        required
+        value={email}
+        onChange={(event) => setEmail(event.currentTarget.value)}
+        onKeyDown={(event) => event.key === 'Enter' && handleEntrar()}
+      />
+      <PasswordInput
+        label="Senha"
+        placeholder="Sua senha"
+        required
+        mt="md"
+        value={senha}
+        onChange={(event) => setSenha(event.currentTarget.value)}
+        onKeyDown={(event) => event.key === 'Enter' && handleEntrar()}
+      />
+
+      <Group justify="space-between" mt="md">
+        <Checkbox label="Lembrar de mim" size="xs" />
+        <Anchor
+          size="xs"
+          c="dimmed"
+          underline="never"
+          onClick={() => avisarEmBreve('A recuperação de senha ainda não está disponível.')}
+        >
+          Esqueci a senha
+        </Anchor>
       </Group>
 
-      <Paper withBorder shadow='md' p={22} mt={30} radius='sm'>
-        <TextInput
-          label='Email'
-          placeholder='Digite seu email'
-          required
-          mt='md'
-          radius='sm'
-          // 5. Conectando o input ao estado
-          value={email}
-          onChange={(event) => setEmail(event.currentTarget.value)}
-        />
-        <PasswordInput
-          label='Senha'
-          placeholder='6 ou mais caracteres'
-          required
-          mt='md'
-          radius='sm'
-          // 6. Conectando o input ao estado
-          value={senha}
-          onChange={(event) => setSenha(event.currentTarget.value)}
-        />
+      <Button
+        fullWidth
+        mt="xl"
+        radius="md"
+        size="md"
+        rightSection={<IconArrowRight size={18} />}
+        onClick={handleEntrar}
+        loading={loading}
+      >
+        Entrar
+      </Button>
 
-        <Button
-          className={classes.entrar}
-          onClick={handleEntrar} // Chama a função que criamos acima
-          loading={loading}
-          fullWidth
-          mt="xl"
-        >
-          Entrar
-        </Button>
+      <Divider label="ou continue com" labelPosition="center" my="lg" />
 
-        <Group className={classes.groupForgotPassword}>
-          <Text className={classes.forgotPassword}>Não tem uma conta?</Text>
-          <Anchor className={classes.forgotPassword} underline='never' component={NavLink} to="/Cadastro">
-            Crie uma aqui
-          </Anchor>
-        </Group>
-      </Paper>
-    </Container>
+      <Button
+        fullWidth
+        variant="default"
+        radius="md"
+        size="md"
+        leftSection={<IconBrandGoogle size={18} />}
+        onClick={() => avisarEmBreve('Login com Google ainda não está disponível.')}
+      >
+        Entrar com Google
+      </Button>
+    </AuthLayout>
   );
 };

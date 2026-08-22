@@ -1,20 +1,17 @@
 import {
   Button,
-  Container,
-  Paper,
   PasswordInput,
   TextInput,
-  Group,
-  Anchor,
   Text,
+  Divider,
 } from '@mantine/core';
-import { IconArrowLeft } from '@tabler/icons-react';
-import classes from './Cadastro.module.css';
-import { NavLink } from "react-router-dom";
+import { IconArrowRight, IconBrandGoogle } from '@tabler/icons-react';
+import { AuthLayout } from '../../components/AuthLayout';
+import { AuthTabs } from '../../components/AuthTabs';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
-import api from './../../services/api';
+import api from '../../services/api';
 
 export const Cadastro = () => {
   const navigate = useNavigate();
@@ -51,97 +48,97 @@ export const Cadastro = () => {
   };
 
   const handleCriarConta = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!validar()) return;
-  setLoading(true);
+    if (!validar()) return;
+    setLoading(true);
 
-  try {
-    const response = await api.post('/usuarios', {
-      nome,
-      email,
-      senha
-    });
+    try {
+      const response = await api.post('/usuarios', { nome, email, senha });
 
-    // Cadastro já vem com token + user (login automático), igual ao /login
-    localStorage.setItem('@NotePlus:token', response.data.token);
-    localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
+      // Cadastro já vem com token + user (login automático), igual ao /login
+      localStorage.setItem('@NotePlus:token', response.data.token);
+      localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
 
-    navigate('/perfil');
-  } catch (error) {
-    const mensagemErro = error.response?.data?.error || 'Erro ao cadastrar';
-    notifications.show({
-      title: 'Não foi possível criar a conta',
-      message: mensagemErro,
-      color: 'red',
-    });
-  } finally {
-    setLoading(false);
-  }
-};
+      navigate('/perfil');
+    } catch (error) {
+      const mensagemErro = error.response?.data?.error || 'Erro ao cadastrar';
+      notifications.show({
+        title: 'Não foi possível criar a conta',
+        message: mensagemErro,
+        color: 'red',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <Container size={420} my={80} justify='center'>
-      <Anchor component={NavLink} to="/" underline="never" c="dimmed">
-        <Group gap={4} align="center">
-          <IconArrowLeft size={16} stroke={1.5} />
-          <Text size="sm">Voltar</Text>
-        </Group>
-      </Anchor>
-
-      <Group justify='center'>
-        <Text className={classes.logo}>NotePlus+</Text>
-      </Group>
+    <AuthLayout
+      eyebrow="Novo por aqui"
+      title="Crie sua conta."
+      subtitle="Salve cursos favoritos, receba alertas de mudança na nota de corte e monte sua lista de opções para o SISU."
+    >
+      <AuthTabs value="criar" />
 
       <form onSubmit={handleCriarConta}>
-        <Paper withBorder shadow='md' p={22} mt={30} radius='sm'>
-          <TextInput
-            label='Nome'
-            placeholder='Seu nome'
-            required
-            value={nome}
-            onChange={(e) => setNome(e.currentTarget.value)}
-            error={erros.nome}
-          />
-          <TextInput
-            label='Email'
-            placeholder='exemplo@gmail.com'
-            required
-            mt='md'
-            value={email}
-            onChange={(e) => setEmail(e.currentTarget.value)}
-            error={erros.email} 
-          />
-          <PasswordInput
-            label='Senha'
-            placeholder='Mínimo 8 caracteres, letras e números'
-            required
-            mt='md'
-            value={senha}
-            onChange={(e) => setSenha(e.currentTarget.value)}
-            error={erros.senha}
-          />
+        <TextInput
+          label="Nome completo"
+          placeholder="Seu nome"
+          required
+          value={nome}
+          onChange={(e) => setNome(e.currentTarget.value)}
+          error={erros.nome}
+        />
+        <TextInput
+          label="E-mail"
+          placeholder="exemplo@email.com"
+          required
+          mt="md"
+          value={email}
+          onChange={(e) => setEmail(e.currentTarget.value)}
+          error={erros.email}
+        />
+        <PasswordInput
+          label="Senha"
+          description="mín. 8 caracteres, letras e números"
+          placeholder="Crie uma senha"
+          required
+          mt="md"
+          value={senha}
+          onChange={(e) => setSenha(e.currentTarget.value)}
+          error={erros.senha}
+        />
 
-          <Group>
-            <Text className={classes.Politic}>Ao continuar, você concorda com os Termos de Serviço e a Política de Privacidade da Note Plus.</Text>
-          </Group>
-
-          <Button 
-            className={classes.criar} 
-            fullWidth 
-            type="submit" 
-            loading={loading}
-          >
-            Criar Conta
-          </Button>
-
-          <Group className={classes.groupForgotPassword}>
-            <Text className={classes.forgotPassword}>Já possui conta?</Text>
-            <Anchor className={classes.forgotPassword} href='#' component={NavLink} to="/Login">
-              Entre
-            </Anchor>
-          </Group>
-        </Paper>
+        <Button
+          fullWidth
+          mt="lg"
+          radius="md"
+          size="md"
+          type="submit"
+          rightSection={<IconArrowRight size={18} />}
+          loading={loading}
+        >
+          Criar conta
+        </Button>
       </form>
-    </Container>
+
+      <Divider label="ou continue com" labelPosition="center" my="lg" />
+
+      <Button
+        fullWidth
+        variant="default"
+        radius="md"
+        size="md"
+        leftSection={<IconBrandGoogle size={18} />}
+        onClick={() => notifications.show({
+          title: 'Em breve',
+          message: 'Cadastro com Google ainda não está disponível.',
+          color: 'blue',
+        })}
+      >
+        Continuar com Google
+      </Button>
+    </AuthLayout>
   );
 };

@@ -1,0 +1,130 @@
+.wrapper {
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+}
+
+.formSide {
+    flex: 1.5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    background-color: #ffffff;
+    z-index: 1;
+
+    /* Inverte a diagonal: topo entra mais à direita (100%), base recua (88%) */
+    clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+    
+    /* Remove a margem negativa excessiva para não 'encurtar' o espaço visual */
+    margin-right: -4vw; 
+    z-index: 2;
+}
+
+.formInner {
+    width: 100%;
+    max-width: 400px;
+}
+
+.logo {
+    display: inline-block;
+    font-size: 22px;
+    font-weight: 800;
+    color: #081828 !important;
+    text-decoration: none !important;
+    margin-bottom: 48px;
+}
+
+.logoPlus {
+    color: #05AE76;
+}
+
+.eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #05AE76;
+    margin-bottom: 8px;
+}
+
+.title {
+    font-size: 30px;
+    font-weight: 700;
+    color: #081828;
+    line-height: 1.2;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    font-size: 14px;
+    color: #667085;
+    line-height: 1.5;
+    margin-bottom: 28px;
+}
+
+.footerLinks {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.footerLink {
+    font-size: 12px;
+    color: #98a2b3;
+}
+
+.footerDot {
+    font-size: 12px;
+    color: #d0d5dd;
+}
+
+/* Painel decorativo: gradiente escuro (navy -> teal) com um grid de
+   pontinhos e alguns "glows" verdes desfocados, referência visual passada
+   pelo usuário. Puramente decorativo — some em telas estreitas. */
+.decorSide {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    background-color: #081828;
+    background-image:
+        radial-gradient(circle, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+        linear-gradient(160deg, #081828 0%, #073636 100%);
+    background-size: 26px 26px, 100% 100%;
+
+    margin-left: -4vw;
+}
+
+.decorGlowTop {
+    position: absolute;
+    top: -60px;
+    left: 8%;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: rgba(5, 174, 118, 0.35);
+    filter: blur(70px);
+}
+
+.decorGlowBottom {
+    position: absolute;
+    bottom: -90px;
+    right: 5%;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: rgba(5, 174, 118, 0.45);
+    filter: blur(90px);
+}
+
+@media (max-width: 900px) {
+    .decorSide {
+        display: none;
+    }
+
+    .formSide {
+        padding: 32px 20px;
+    }
+}
