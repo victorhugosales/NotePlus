@@ -57,7 +57,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
         zIndex: 100
       }}
     >
-      <Card className={classes.sidebarCard} h={'100vh'} shadow="sm" radius="md" withBorder>
+      <Card className={classes.sidebarCard} h={'100vh'} shadow="sm" radius={0} withBorder>
         <Stack className={classes.stackContainer} justify="flex-start" p="12px" h="100%">
 
           <Group className={classes.topBar} justify={collapsed ? 'center' : 'space-between'} wrap="nowrap">

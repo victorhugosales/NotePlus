@@ -233,12 +233,14 @@ export const Perfil = () => {
     }
 
     return (
-        <Container className={classes.mainContainer} fluid maw={1100}>
+        <Container className={classes.mainContainer} fluid>
             <Stack mt={20}>
                 {/* HEADER */}
                 <Text fw={700} size="24px">Perfil</Text>
 
-                <Tabs defaultValue="perfil" variant="outline" classNames={{
+                {/* Conteúdo em si num teto de leitura confortável; a página em
+                    volta (fundo, título) usa toda a largura, igual à Home. */}
+                <Tabs defaultValue="perfil" variant="outline" maw={900} classNames={{
                     root: classes.tabsRoot,
                     list: classes.tabsList,
                     tab: classes.tab,

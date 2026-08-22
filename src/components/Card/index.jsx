@@ -61,7 +61,7 @@ export const CardCurso = ({ dados, isFavorito, onToggleFavorito }) => {
                 </Text>
 
                 <Text className={classes.grauTexto}>
-                    {dados.grau}
+                    {dados.grau}{dados.turno ? ` · ${dados.turno}` : ''}
                 </Text>
 
                 <Box className={classes.vagasBox}>
@@ -71,7 +71,7 @@ export const CardCurso = ({ dados, isFavorito, onToggleFavorito }) => {
 
                 <Anchor
                     component={NavLink}
-                    to={`/Detalhes?curso=${encodeURIComponent(dados.curso)}&uni=${encodeURIComponent(dados.sigla_universidade)}&codigo=${dados.codigo_curso}`}
+                    to={`/Detalhes?curso=${encodeURIComponent(dados.curso)}&uni=${encodeURIComponent(dados.sigla_universidade)}&codigo=${dados.codigo_curso}${dados.turno ? `&turno=${encodeURIComponent(dados.turno)}` : ''}`}
                     underline="none"
                     style={{ marginTop: 'auto' }}
                 >

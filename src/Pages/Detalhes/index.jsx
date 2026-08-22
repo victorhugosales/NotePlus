@@ -38,6 +38,9 @@ export const Detalhes = () => {
     const cursoNome = queryParams.get('curso');
     const uniSigla = queryParams.get('uni');
     const cursoCodigo = queryParams.get('codigo');
+    // Matutino/Vespertino etc. Sem turno na URL (links antigos), a página
+    // mostra todos os turnos daquele curso juntos, como antes.
+    const turnoCurso = queryParams.get('turno');
 
     // Análise Inteligente: compara a nota do ENEM do usuário logado com as
     // notas de corte de cada modalidade e prioriza as modalidades dele.
@@ -60,7 +63,8 @@ export const Detalhes = () => {
                         codigo: cursoCodigo,
                         curso: cursoNome,
                         universidade: uniSigla,
-                        ano: ano
+                        ano: ano,
+                        ...(turnoCurso && { turno: turnoCurso })
                     }
                 });
 
@@ -79,7 +83,7 @@ export const Detalhes = () => {
         };
 
         if (cursoCodigo || cursoNome) fetchDetalhes();
-    }, [cursoCodigo, cursoNome, uniSigla, ano]);
+    }, [cursoCodigo, cursoNome, uniSigla, ano, turnoCurso]);
 
     // Carrega o perfil completo (nota do ENEM + modalidades) do usuário logado.
     useEffect(() => {
@@ -104,7 +108,13 @@ export const Detalhes = () => {
             try {
                 const respostas = await Promise.all(
                     ANOS_COMPARACAO.map((anoRef) => api.get('/pesquisar', {
-                        params: { codigo: cursoCodigo, curso: cursoNome, universidade: uniSigla, ano: anoRef }
+                        params: {
+                            codigo: cursoCodigo,
+                            curso: cursoNome,
+                            universidade: uniSigla,
+                            ano: anoRef,
+                            ...(turnoCurso && { turno: turnoCurso })
+                        }
                     }))
                 );
 
@@ -119,7 +129,7 @@ export const Detalhes = () => {
         };
 
         fetchComparativo();
-    }, [visao, comparativoAnos, cursoCodigo, cursoNome, uniSigla]);
+    }, [visao, comparativoAnos, cursoCodigo, cursoNome, uniSigla, turnoCurso]);
 
     const navigate = useNavigate();
 
@@ -258,6 +268,9 @@ export const Detalhes = () => {
                     <Group><Text fw={600}>Instituição:</Text><Text>{infoCurso?.nome_universidade || uniSigla}</Text></Group>
                     <Group><Text fw={600}>Campus:</Text><Text>{infoCurso?.campus} ({infoCurso?.cidade})</Text></Group>
                     <Group><Text fw={600}>Grau:</Text><Text>{infoCurso?.grau || 'Bacharelado'}</Text></Group>
+                    {(turnoCurso || infoCurso?.turno) && (
+                        <Group><Text fw={600}>Turno:</Text><Text>{turnoCurso || infoCurso?.turno}</Text></Group>
+                    )}
                 </Stack>
             </Paper>
 

@@ -91,7 +91,9 @@ export const Cursos = () => {
       const mapaAgrupado = {};
 
       response.data.forEach(item => {
-        const chave = `${item.codigo_curso}-${item.sigla_universidade}`;
+        // Turno entra na chave: matutino e vespertino do mesmo curso têm
+        // vagas e nota de corte próprias, não podem ser somados juntos.
+        const chave = `${item.codigo_curso}-${item.sigla_universidade}-${item.turno || ''}`;
 
         if (!mapaAgrupado[chave]) {
           mapaAgrupado[chave] = { ...item, vagas: Number(item.vagas) };
