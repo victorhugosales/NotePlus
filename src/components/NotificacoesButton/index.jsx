@@ -13,13 +13,22 @@ const formatarData = (isoString) => {
     }
 };
 
+const CACHE_KEY = 'cache_notificacoes';
+
 // Botão "Notificações" da Home: mostra um selo com a quantidade de não
 // lidas e, ao clicar, abre a lista (curso em alta, curso parecido com um
 // favorito, etc — geradas pelo backend a cada 12h para quem habilitou nas
 // configurações).
+//
+// Começa com o último valor visto (sessionStorage): o botão fica em várias
+// telas e remonta a cada navegação, sem isso o selo de não lidas sumia e
+// reaparecia toda vez que a página recarregava.
 export const NotificacoesButton = ({ onNaoAutenticado, className }) => {
     const [opened, setOpened] = useState(false);
-    const [notificacoes, setNotificacoes] = useState([]);
+    const [notificacoes, setNotificacoes] = useState(() => {
+        const cache = sessionStorage.getItem(CACHE_KEY);
+        return cache ? JSON.parse(cache) : [];
+    });
     const [loading, setLoading] = useState(false);
     const naoLidas = notificacoes.filter((n) => !n.lida).length;
 
@@ -29,6 +38,7 @@ export const NotificacoesButton = ({ onNaoAutenticado, className }) => {
         try {
             const response = await api.get('/notificacoes');
             setNotificacoes(response.data);
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(response.data));
         } catch (error) {
             console.error('Erro ao buscar notificações', error);
         } finally {
@@ -50,7 +60,9 @@ export const NotificacoesButton = ({ onNaoAutenticado, className }) => {
     const handleMarcarTodasLidas = async () => {
         try {
             await api.put('/notificacoes/lidas');
-            setNotificacoes((atual) => atual.map((n) => ({ ...n, lida: true })));
+            const atualizadas = notificacoes.map((n) => ({ ...n, lida: true }));
+            setNotificacoes(atualizadas);
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(atualizadas));
         } catch (error) {
             console.error('Erro ao marcar notificações como lidas', error);
         }

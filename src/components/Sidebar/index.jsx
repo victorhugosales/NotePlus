@@ -13,6 +13,7 @@ import { IconHome, IconBook, IconSchool, IconLogout, IconUser, IconChevronLeft, 
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import classes from './Sidebar.module.css';
+import { tocarClique } from '../../utils/sons';
 
 const LINKS = [
   { to: '/', icon: IconHome, label: 'Menu' },
@@ -65,7 +66,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
             <ActionIcon
               variant="subtle"
               color="gray.4"
-              onClick={onToggleCollapse}
+              onClick={() => { tocarClique(); onToggleCollapse(); }}
               aria-label={collapsed ? 'Expandir menu' : 'Retrair menu'}
               title={collapsed ? 'Expandir menu' : 'Retrair menu'}
             >

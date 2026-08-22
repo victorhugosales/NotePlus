@@ -55,20 +55,29 @@ export const Home = () => {
   const [favoritosModalOpened, { open: openFavoritosModal, close: closeFavoritosModal }] = useDisclosure(false);
   const { favoritos, isFavorito, toggleFavorito } = useFavoritos({ onNaoAutenticado: openLoginModal });
 
-  //organização dos Dados da DashBoard
-  const [stats, setStats] = useState({
-    totalCursos: 0,
-    totalFaculdades: 0,
-    mediaCursos: 0,
-    totalEstados: 0
+  //organização dos Dados da DashBoard. Começa com o último valor visto
+  //(sessionStorage) em vez de zerado — sem isso, toda vez que a Home
+  //remonta (ex.: voltando de outra página) os números piscavam pra 0 e só
+  //depois voltavam a aparecer, mesmo o backend já tendo isso em cache.
+  const [stats, setStats] = useState(() => {
+    const cache = sessionStorage.getItem('home_lastStats');
+    return cache ? JSON.parse(cache) : {
+      totalCursos: 0,
+      totalFaculdades: 0,
+      mediaCursos: 0,
+      totalEstados: 0
+    };
   });
 
-  //Carrega os dados da DashBoard
+  //Carrega os dados da DashBoard (sempre busca de novo em segundo plano
+  //pra manter atualizado, mas a tela já mostra o último valor conhecido
+  //enquanto isso acontece).
   useEffect(() => {
     const carregarStats = async () => {
       try {
         const response = await api.get('/stats');
         setStats(response.data);
+        sessionStorage.setItem('home_lastStats', JSON.stringify(response.data));
       } catch (error) {
         console.error("Erro ao carregar dashboard", error);
       } finally {
@@ -235,7 +244,10 @@ export const Home = () => {
       </Modal>
 
       <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
-        <Text className={classes.logo} fw={700} >Visão Geral</Text>
+        <Group gap="xs">
+          <Text className={classes.logo} fw={700}>Visão Geral</Text>
+          {loadingStats && <Loader size="xs" color="brand" />}
+        </Group>
         <Group className={classes.btnsHeader}>
           <Button
             className={classes.headerButton}
@@ -354,68 +366,45 @@ export const Home = () => {
       </Box>
 
       {/* Resultados em cards */}
-      {/* {loading ? (
-        <Center mt={50}><Loader color="blue" /></Center>
+      {loading ? (
+        <Center mt={50}><Loader color="brand" /></Center>
       ) : (
         <Box mt={30}>
           {Object.keys(dadosAgrupados).length > 0 ? (
-            Object.entries(dadosAgrupados).map(([sigla, itens]) => (
-              <Box key={sigla} mb={50}>
-                <Group mb="lg" gap="xs">
-                  <Box bg="blue.7" px={8} py={2} style={{ borderRadius: 4 }}>
-                    <Text c="white" fw={800}>{sigla}</Text>
-                  </Box>
-                  <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
-                </Group>
+            // 1. Pegamos as siglas (chaves)
+            Object.keys(dadosAgrupados)
+              // 2. Ordenamos de A a Z
+              .sort()
+              // 3. Mapeamos as siglas ordenadas para renderizar
+              .map((sigla) => {
+                const itens = dadosAgrupados[sigla];
+                return (
+                  <Box key={sigla} mb={50}>
+                    <Group mb="lg" gap="xs">
+                      <Box bg="blue.7" px={8} py={2} style={{ borderRadius: 4 }}>
+                        <Text c="white" fw={800}>{sigla}</Text>
+                      </Box>
+                      <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
+                    </Group>
 
-                <SimpleGrid cols={3} spacing="lg">
-                  {itens.map((item) => (
-                    <CardCurso key={item.id_projeto} dados={item} />
-                  ))}
-                </SimpleGrid>
-              </Box>
-            ))
+                    <Box className={classes.resultsGrid}>
+                      {itens.map((item) => (
+                        <CardCurso
+                          key={item.id_projeto}
+                          dados={item}
+                          isFavorito={isFavorito(item)}
+                          onToggleFavorito={toggleFavorito}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                );
+              })
           ) : (
             pesquisa && <Text ta="center" c="dimmed" mt={50}>Nenhum resultado encontrado.</Text>
           )}
         </Box>
-      )} */}
-
-      <Box mt={30}>
-        {Object.keys(dadosAgrupados).length > 0 ? (
-          // 1. Pegamos as siglas (chaves)
-          Object.keys(dadosAgrupados)
-            // 2. Ordenamos de A a Z
-            .sort()
-            // 3. Mapeamos as siglas ordenadas para renderizar
-            .map((sigla) => {
-              const itens = dadosAgrupados[sigla];
-              return (
-                <Box key={sigla} mb={50}>
-                  <Group mb="lg" gap="xs">
-                    <Box bg="blue.7" px={8} py={2} style={{ borderRadius: 4 }}>
-                      <Text c="white" fw={800}>{sigla}</Text>
-                    </Box>
-                    <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
-                  </Group>
-
-                  <Box className={classes.resultsGrid}>
-                    {itens.map((item) => (
-                      <CardCurso
-                        key={item.id_projeto}
-                        dados={item}
-                        isFavorito={isFavorito(item)}
-                        onToggleFavorito={toggleFavorito}
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              );
-            })
-        ) : (
-          pesquisa && <Text ta="center" c="dimmed" mt={50}>Nenhum resultado encontrado.</Text>
-        )}
-      </Box>
+      )}
     </Container>
   );
 };

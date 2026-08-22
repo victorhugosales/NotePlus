@@ -33,6 +33,7 @@ import { useState, useEffect } from 'react';
 import api from '../../services/api'
 import { modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
+import { efeitosSonorosAtivos, definirEfeitosSonoros, tocarToggleLigado, tocarToggleDesligado } from '../../utils/sons';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SENHA_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
@@ -238,9 +239,7 @@ export const Perfil = () => {
                 {/* HEADER */}
                 <Text fw={700} size="24px">Perfil</Text>
 
-                {/* Conteúdo em si num teto de leitura confortável; a página em
-                    volta (fundo, título) usa toda a largura, igual à Home. */}
-                <Tabs defaultValue="perfil" variant="outline" maw={900} classNames={{
+                <Tabs defaultValue="perfil" variant="outline" classNames={{
                     root: classes.tabsRoot,
                     list: classes.tabsList,
                     tab: classes.tab,
@@ -445,15 +444,20 @@ export const Perfil = () => {
                                     <ConfigRow label="Efeitos sonoros">
                                         <Switch
                                             color="orange"
-                                            defaultChecked={user.configuracoes?.efeitos_sonoros}
+                                            defaultChecked={user.configuracoes?.efeitos_sonoros ?? efeitosSonorosAtivos()}
                                             size="sm"
                                             onChange={async (event) => {
                                                 const checked = event.currentTarget.checked;
+                                                definirEfeitosSonoros(checked);
+                                                if (checked) tocarToggleLigado(); else tocarToggleDesligado();
                                                 try {
-                                                    // Supondo que sua API trate o objeto de configurações
                                                     await api.put(`/usuario/${user.id}`, {
                                                         configuracoes: { ...user.configuracoes, efeitos_sonoros: checked }
                                                     });
+                                                    setUser((atual) => ({
+                                                        ...atual,
+                                                        configuracoes: { ...atual.configuracoes, efeitos_sonoros: checked }
+                                                    }));
                                                 } catch (err) {
                                                     console.error("Erro ao salvar config:", err);
                                                 }

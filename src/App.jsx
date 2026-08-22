@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import './App.css'
 import { AppRoutes } from './AppRoutes';
 import api from './services/api';
+import { definirEfeitosSonoros } from './utils/sons';
 
 // Paleta de marca do NotePlus+: verde como cor primária, com tons pastel
 // (definidos em cada tela, ex. cards de estatística) usados como fundo de
@@ -29,9 +30,10 @@ const theme = createTheme({
   },
 });
 
-// Aplica o tema salvo no perfil do usuário logado assim que o app carrega.
-// Sem login, o Mantine já mantém o último tema escolhido via localStorage
-// sozinho (comportamento padrão do MantineProvider).
+// Aplica as preferências salvas no perfil do usuário logado assim que o
+// app carrega (tema e efeitos sonoros). Sem login, cada uma já tem um
+// padrão razoável guardado no localStorage (Mantine cuida do tema sozinho;
+// efeitos sonoros usa src/utils/sons.js).
 const ThemeSync = () => {
   const { setColorScheme } = useMantineColorScheme();
 
@@ -44,10 +46,15 @@ const ThemeSync = () => {
 
     api.get(`/usuario/${userData.id}`)
       .then((response) => {
-        const tema = response.data?.configuracoes?.tema;
+        const configuracoes = response.data?.configuracoes;
+        const tema = configuracoes?.tema;
         if (tema === 'light' || tema === 'dark') setColorScheme(tema);
+
+        if (typeof configuracoes?.efeitos_sonoros === 'boolean') {
+          definirEfeitosSonoros(configuracoes.efeitos_sonoros);
+        }
       })
-      .catch((error) => console.error('Erro ao sincronizar tema do usuário', error));
+      .catch((error) => console.error('Erro ao sincronizar preferências do usuário', error));
   }, [setColorScheme]);
 
   return null;

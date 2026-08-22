@@ -6,22 +6,33 @@ import { notifications } from '@mantine/notifications';
 // saber se um card já está favoritado.
 const chave = (item) => `${item.codigo_curso}-${item.sigla_universidade}`;
 
+const CACHE_KEY = 'cache_favoritos';
+
 // Centraliza carregar/favoritar/desfavoritar cursos. Usado em toda página
 // que lista cursos em CardCurso (Home, Cursos) pra manter a estrela e a
 // lista de favoritos em sincronia sem duplicar essa lógica em cada uma.
+//
+// Começa com o último valor visto (sessionStorage) em vez de vazio: como
+// Home/Cursos remontam a cada navegação, sem isso as estrelas "piscavam"
+// desmarcadas por um instante toda vez que a página recarregava.
 export function useFavoritos({ onNaoAutenticado } = {}) {
-    const [favoritos, setFavoritos] = useState([]);
+    const [favoritos, setFavoritos] = useState(() => {
+        const cache = sessionStorage.getItem(CACHE_KEY);
+        return cache ? JSON.parse(cache) : [];
+    });
     const [loading, setLoading] = useState(false);
 
     const carregarFavoritos = useCallback(async () => {
         if (!localStorage.getItem('@NotePlus:token')) {
             setFavoritos([]);
+            sessionStorage.removeItem(CACHE_KEY);
             return;
         }
         setLoading(true);
         try {
             const response = await api.get('/favoritos');
             setFavoritos(response.data);
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(response.data));
         } catch (error) {
             console.error('Erro ao carregar favoritos', error);
         } finally {
@@ -43,9 +54,10 @@ export function useFavoritos({ onNaoAutenticado } = {}) {
         const existente = favoritos.find((f) => chave(f) === chave(item));
 
         try {
+            let novaLista;
             if (existente) {
                 await api.delete(`/favoritos/${existente.id}`);
-                setFavoritos((atual) => atual.filter((f) => f.id !== existente.id));
+                novaLista = favoritos.filter((f) => f.id !== existente.id);
             } else {
                 const response = await api.post('/favoritos', {
                     codigo_curso: item.codigo_curso,
@@ -56,8 +68,10 @@ export function useFavoritos({ onNaoAutenticado } = {}) {
                     campus: item.campus,
                     grau: item.grau,
                 });
-                setFavoritos((atual) => [response.data, ...atual]);
+                novaLista = [response.data, ...favoritos];
             }
+            setFavoritos(novaLista);
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(novaLista));
         } catch {
             notifications.show({
                 title: 'Erro',

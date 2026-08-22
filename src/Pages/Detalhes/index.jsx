@@ -21,6 +21,7 @@ import api from '../../services/api';
 import { CardDetails } from '../../components/CardDetails'
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
+import { tocarToggleLigado, tocarToggleDesligado } from '../../utils/sons';
 
 // Anos disponíveis pra comparação na Visão Avançada. Mesma lista de opções
 // habilitadas do seletor de edição do SISU (2024/2023 ainda não têm dados).
@@ -147,7 +148,11 @@ export const Detalhes = () => {
             });
             return;
         }
-        setAnaliseAtiva((atual) => !atual);
+        setAnaliseAtiva((atual) => {
+            const novoValor = !atual;
+            (novoValor ? tocarToggleLigado : tocarToggleDesligado)();
+            return novoValor;
+        });
     };
 
     // Com a Análise Inteligente ligada, prioriza as modalidades escolhidas
