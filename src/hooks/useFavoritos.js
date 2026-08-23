@@ -18,7 +18,13 @@ const CACHE_KEY = 'cache_favoritos';
 export function useFavoritos({ onNaoAutenticado } = {}) {
     const [favoritos, setFavoritos] = useState(() => {
         const cache = sessionStorage.getItem(CACHE_KEY);
-        return cache ? JSON.parse(cache) : [];
+        if (!cache) return [];
+        try {
+            const dados = JSON.parse(cache);
+            return Array.isArray(dados) ? dados : [];
+        } catch {
+            return [];
+        }
     });
     const [loading, setLoading] = useState(false);
 
@@ -31,8 +37,9 @@ export function useFavoritos({ onNaoAutenticado } = {}) {
         setLoading(true);
         try {
             const response = await api.get('/favoritos');
-            setFavoritos(response.data);
-            sessionStorage.setItem(CACHE_KEY, JSON.stringify(response.data));
+            const dados = Array.isArray(response.data) ? response.data : [];
+            setFavoritos(dados);
+            sessionStorage.setItem(CACHE_KEY, JSON.stringify(dados));
         } catch (error) {
             console.error('Erro ao carregar favoritos', error);
         } finally {

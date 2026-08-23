@@ -2,11 +2,14 @@ import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
 import { MantineProvider, useMantineColorScheme, createTheme } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useEffect } from 'react';
 import './App.css'
 import { AppRoutes } from './AppRoutes';
 import api from './services/api';
 import { definirEfeitosSonoros } from './utils/sons';
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 // Paleta de marca do NotePlus+: verde como cor primária, com tons pastel
 // (definidos em cada tela, ex. cards de estatística) usados como fundo de
@@ -61,12 +64,23 @@ const ThemeSync = () => {
 };
 
 export const App = () => {
-  return (
+  const conteudo = (
     <MantineProvider theme={theme} defaultColorScheme="light">
       <ModalsProvider>
         <ThemeSync />
         <AppRoutes />
       </ModalsProvider>
     </MantineProvider>
+  );
+
+  // Sem VITE_GOOGLE_CLIENT_ID configurado (ex.: alguém ainda não preencheu
+  // o .env local), o app continua funcionando normalmente — só o botão de
+  // login com Google não vai inicializar.
+  if (!GOOGLE_CLIENT_ID) return conteudo;
+
+  return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      {conteudo}
+    </GoogleOAuthProvider>
   );
 };

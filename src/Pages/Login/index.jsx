@@ -6,8 +6,11 @@ import {
   Anchor,
   Checkbox,
   Divider,
+  Box,
+  Center,
 } from '@mantine/core';
-import { IconArrowRight, IconBrandGoogle } from '@tabler/icons-react';
+import { IconArrowRight } from '@tabler/icons-react';
+import { GoogleLogin } from '@react-oauth/google';
 import { AuthLayout } from '../../components/AuthLayout';
 import { AuthTabs } from '../../components/AuthTabs';
 import { useNavigate } from 'react-router-dom';
@@ -53,10 +56,27 @@ export const Login = () => {
     }
   };
 
-  // Recursos que ainda não existem no backend (login social, recuperação
-  // de senha) — mostram um aviso em vez de fingir que funcionam.
+  // Recuperação de senha ainda não existe no backend — mostra um aviso em
+  // vez de fingir que funciona.
   const avisarEmBreve = (mensagem) => {
     notifications.show({ title: 'Em breve', message: mensagem, color: 'blue' });
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    setLoading(true);
+    try {
+      const response = await api.post('/login/google', { credential: credentialResponse.credential });
+
+      localStorage.setItem('@NotePlus:token', response.data.token);
+      localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
+
+      navigate('/');
+    } catch (err) {
+      const mensagem = err.response?.data?.error || 'Erro ao entrar com o Google.';
+      notifications.show({ title: 'Não foi possível entrar', message: mensagem, color: 'red' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -111,16 +131,23 @@ export const Login = () => {
 
       <Divider label="ou continue com" labelPosition="center" my="lg" />
 
-      <Button
-        fullWidth
-        variant="default"
-        radius="md"
-        size="md"
-        leftSection={<IconBrandGoogle size={18} />}
-        onClick={() => avisarEmBreve('Login com Google ainda não está disponível.')}
-      >
-        Entrar com Google
-      </Button>
+      <Center>
+        <Box style={{ width: '100%', maxWidth: 380 }}>
+          <GoogleLogin
+            onSuccess={handleGoogleSuccess}
+            onError={() => notifications.show({
+              title: 'Não foi possível entrar',
+              message: 'Erro ao entrar com o Google.',
+              color: 'red',
+            })}
+            theme="outline"
+            size="large"
+            shape="pill"
+            text="signin_with"
+            width="380"
+          />
+        </Box>
+      </Center>
     </AuthLayout>
   );
 };
