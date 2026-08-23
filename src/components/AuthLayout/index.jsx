@@ -1,5 +1,6 @@
-import { Box, Text } from '@mantine/core';
-import { NavLink } from 'react-router-dom';
+import { Box, Text, Button } from '@mantine/core';
+import { IconArrowLeft } from '@tabler/icons-react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import classes from './AuthLayout.module.css';
 
 // Casca visual compartilhada por Login e Cadastro: painel branco com o
@@ -7,6 +8,8 @@ import classes from './AuthLayout.module.css';
 // mobile). eyebrow/title/subtitle mudam por página; o resto do formulário
 // vem via children.
 export const AuthLayout = ({ eyebrow, title, subtitle, children }) => {
+    const navigate = useNavigate();
+
     return (
         <Box className={classes.wrapper}>
             <Box className={classes.formSide}>
@@ -20,6 +23,20 @@ export const AuthLayout = ({ eyebrow, title, subtitle, children }) => {
                     <Text className={classes.subtitle}>{subtitle}</Text>
 
                     {children}
+
+                    {/* Deixa claro que dá pra usar o site sem criar conta — a
+                        Home e as buscas são livres, só o Perfil exige login. */}
+                    <Button
+                        variant="subtle"
+                        color="gray"
+                        size="xs"
+                        fullWidth
+                        mt="lg"
+                        leftSection={<IconArrowLeft size={14} />}
+                        onClick={() => navigate('/')}
+                    >
+                        Talvez depois
+                    </Button>
 
                     <Box className={classes.footerLinks}>
                         <Text component="span" className={classes.footerLink}>Termos de uso</Text>
