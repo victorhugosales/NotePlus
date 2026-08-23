@@ -5,6 +5,8 @@ import { Notifications } from '@mantine/notifications';
 import { MainLayout } from './layout/index';
 import { Login } from './Pages/Login';
 import { Cadastro } from './Pages/Cadastro';
+import { RecuperarSenha } from './Pages/RecuperarSenha';
+import { RedefinirSenha } from './Pages/RedefinirSenha';
 import { Home } from './Pages/Home';
 import { Cursos } from './Pages/Cursos';
 import { Faculdades } from './Pages/Faculdades';
@@ -30,6 +32,8 @@ export const AppRoutes = () => {
           {/* Rotas públicas, sem sidebar */}
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
+          <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+          <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
           <Route element={<MainLayout />}>
             {/* Home e páginas de pesquisa: livres, sem exigir login */}

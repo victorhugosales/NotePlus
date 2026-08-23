@@ -13,7 +13,7 @@ import { IconArrowRight } from '@tabler/icons-react';
 import { GoogleLogin } from '@react-oauth/google';
 import { AuthLayout } from '../../components/AuthLayout';
 import { AuthTabs } from '../../components/AuthTabs';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react'
 import { notifications } from '@mantine/notifications';
 import api from '../../services/api';
@@ -54,12 +54,6 @@ export const Login = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Recuperação de senha ainda não existe no backend — mostra um aviso em
-  // vez de fingir que funciona.
-  const avisarEmBreve = (mensagem) => {
-    notifications.show({ title: 'Em breve', message: mensagem, color: 'blue' });
   };
 
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -108,10 +102,11 @@ export const Login = () => {
       <Group justify="space-between" mt="md">
         <Checkbox label="Lembrar de mim" size="xs" />
         <Anchor
+          component={Link}
+          to="/recuperar-senha"
           size="xs"
           c="dimmed"
           underline="never"
-          onClick={() => avisarEmBreve('A recuperação de senha ainda não está disponível.')}
         >
           Esqueci a senha
         </Anchor>
