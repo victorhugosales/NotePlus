@@ -11,7 +11,8 @@ import {
     Modal,
     SegmentedControl,
     Loader,
-    Center
+    Center,
+    UnstyledButton
 } from '@mantine/core';
 import { BarChart, LineChart } from '@mantine/charts';
 import classes from '../Detalhes/Detalhes.module.css'
@@ -25,7 +26,10 @@ import { tocarToggleLigado, tocarToggleDesligado } from '../../utils/sons';
 import { useAnosDisponiveis } from '../../hooks/useAnosDisponiveis';
 
 // Paleta pra colorir uma linha por modalidade no gráfico de evolução.
-const CORES_LINHAS = ['#05AE76', '#4C6EF5', '#b8890a', '#E64980', '#5C5FE8', '#073636', '#03AD74', '#1098AD'];
+// Antes tinha duas cores quase idênticas (dois tons de verde muito
+// próximos, #05AE76 e #03AD74) — fáceis de confundir numa legenda com 8
+// itens. Reescolhida pra maximizar contraste entre cores vizinhas.
+const CORES_LINHAS = ['#05AE76', '#4C6EF5', '#F59F00', '#E64980', '#7048E8', '#1098AD', '#862E1B', '#495057'];
 
 export const Detalhes = () => {
     const location = useLocation();
@@ -52,6 +56,9 @@ export const Detalhes = () => {
     const [visao, setVisao] = useState('simplificada');
     const [comparativoAnos, setComparativoAnos] = useState(null);
     const [carregandoComparativo, setCarregandoComparativo] = useState(false);
+    // Modalidade em foco no gráfico de evolução (clicou numa legenda pra
+    // isolar só aquela linha) — null mostra todas.
+    const [modalidadeFoco, setModalidadeFoco] = useState(null);
 
     const { anos, opcoes: opcoesAno } = useAnosDisponiveis();
     // Edições disponíveis pro gráfico de evolução, da mais antiga pra mais
@@ -112,8 +119,14 @@ export const Detalhes = () => {
 
     // Busca as notas de todos os anos disponíveis pra montar o gráfico de
     // evolução — só na primeira vez que o usuário abre a Visão Avançada.
+    //
+    // Espera anosComparacao carregar antes de disparar: como esse efeito só
+    // busca uma vez (guarda por comparativoAnos), se ele disparasse com
+    // anosComparacao ainda vazio (useAnosDisponiveis não respondeu a tempo),
+    // ficaria travado num resultado vazio pra sempre — comparativoAnos vira
+    // um objeto (mesmo vazio) e a guarda acima nunca deixa buscar de novo.
     useEffect(() => {
-        if (visao !== 'avancada' || comparativoAnos || !(cursoCodigo || cursoNome)) return;
+        if (visao !== 'avancada' || comparativoAnos || !(cursoCodigo || cursoNome) || anosComparacao.length === 0) return;
 
         const fetchComparativo = async () => {
             setCarregandoComparativo(true);
@@ -190,28 +203,50 @@ export const Detalhes = () => {
 
     // Gráfico de linha comparando a nota de corte de cada modalidade entre
     // as edições disponíveis (ex.: AC em 2025 x AC em 2026).
-    const { dadosComparativo, modalidadesComparativo } = useMemo(() => {
-        if (!comparativoAnos) return { dadosComparativo: [], modalidadesComparativo: [] };
+    const { dadosComparativo, modalidadesComparativo, modalidadesSemComparacao } = useMemo(() => {
+        if (!comparativoAnos) {
+            return { dadosComparativo: [], modalidadesComparativo: [], modalidadesSemComparacao: [] };
+        }
 
-        const modalidadesSet = new Set();
+        // Conta em quantas edições cada modalidade teve vaga/nota válida —
+        // uma modalidade com só 1 ponto não forma linha nenhuma (não dá pra
+        // traçar uma reta com um ponto só), então ela fica de fora do
+        // gráfico principal pra não virar um monte de pontos soltos.
+        const contagemPorModalidade = {};
         anosComparacao.forEach((anoRef) => {
             (comparativoAnos[anoRef] || []).forEach((n) => {
-                if (Number(n.vagas) > 0 && Number(n.nota_corte) > 0) modalidadesSet.add(n.modalidade);
+                if (Number(n.vagas) > 0 && Number(n.nota_corte) > 0) {
+                    contagemPorModalidade[n.modalidade] = (contagemPorModalidade[n.modalidade] || 0) + 1;
+                }
             });
         });
+
+        const modalidadesComComparacao = Object.keys(contagemPorModalidade).filter((m) => contagemPorModalidade[m] >= 2);
+        const modalidadesSemComparacao = Object.keys(contagemPorModalidade).filter((m) => contagemPorModalidade[m] < 2);
 
         const linhas = anosComparacao.map((anoRef) => {
             const linha = { ano: anoRef };
             (comparativoAnos[anoRef] || []).forEach((n) => {
-                if (Number(n.vagas) > 0 && Number(n.nota_corte) > 0) {
+                if (Number(n.vagas) > 0 && Number(n.nota_corte) > 0 && modalidadesComComparacao.includes(n.modalidade)) {
                     linha[n.modalidade] = Number(n.nota_corte);
                 }
             });
             return linha;
         });
 
-        return { dadosComparativo: linhas, modalidadesComparativo: [...modalidadesSet] };
+        return { dadosComparativo: linhas, modalidadesComparativo: modalidadesComComparacao, modalidadesSemComparacao };
     }, [comparativoAnos, anosComparacao]);
+
+    const seriesComparativo = useMemo(() => (
+        modalidadesComparativo.map((m, i) => ({ name: m, color: CORES_LINHAS[i % CORES_LINHAS.length] }))
+    ), [modalidadesComparativo]);
+
+    // Com uma modalidade em foco, o gráfico mostra só a linha dela — clicar
+    // de novo na mesma modalidade (ou nela mesma já em foco) volta a
+    // mostrar todas.
+    const seriesExibidas = modalidadeFoco
+        ? seriesComparativo.filter((s) => s.name === modalidadeFoco)
+        : seriesComparativo;
 
     return (
         <Container className={classes.maincontainer} fluid>
@@ -366,18 +401,54 @@ export const Detalhes = () => {
                                     Evolução da nota de corte: {anosComparacao.join(' → ')}
                                 </Text>
                                 {modalidadesComparativo.length > 0 ? (
-                                    <LineChart
-                                        h={320}
-                                        data={dadosComparativo}
-                                        dataKey="ano"
-                                        series={modalidadesComparativo.map((m, i) => ({
-                                            name: m,
-                                            color: CORES_LINHAS[i % CORES_LINHAS.length],
-                                        }))}
-                                        curveType="linear"
-                                        withLegend
-                                        connectNulls={false}
-                                    />
+                                    <>
+                                        {/* Legenda própria, clicável: clicar isola só aquela linha no
+                                        gráfico, clicar de novo (ou na mesma) volta a mostrar todas. */}
+                                        <Group gap="xs" mb="md">
+                                            {seriesComparativo.map((s) => {
+                                                const emFoco = modalidadeFoco === s.name;
+                                                const apagada = modalidadeFoco && !emFoco;
+                                                return (
+                                                    <UnstyledButton
+                                                        key={s.name}
+                                                        onClick={() => setModalidadeFoco((atual) => (atual === s.name ? null : s.name))}
+                                                        style={{
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            gap: 6,
+                                                            padding: '4px 10px',
+                                                            borderRadius: 999,
+                                                            border: `1px solid ${s.color}`,
+                                                            backgroundColor: emFoco ? s.color : 'transparent',
+                                                            opacity: apagada ? 0.4 : 1,
+                                                        }}
+                                                    >
+                                                        <Box style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: s.color, flexShrink: 0 }} />
+                                                        <Text size="xs" fw={600} c={emFoco ? 'white' : undefined}>{s.name}</Text>
+                                                    </UnstyledButton>
+                                                );
+                                            })}
+                                        </Group>
+
+                                        <LineChart
+                                            h={320}
+                                            data={dadosComparativo}
+                                            dataKey="ano"
+                                            series={seriesExibidas}
+                                            curveType="linear"
+                                            withLegend={false}
+                                            connectNulls
+                                            strokeWidth={3}
+                                            dotProps={{ r: 5, strokeWidth: 2 }}
+                                            activeDotProps={{ r: 7, strokeWidth: 2 }}
+                                            yAxisProps={{ domain: ['dataMin - 20', 'dataMax + 20'] }}
+                                        />
+                                        {modalidadesSemComparacao.length > 0 && (
+                                            <Text c="dimmed" size="xs" mt="sm">
+                                                {modalidadesSemComparacao.join(', ')}: sem vaga/nota em edições suficientes pra formar linha de comparação.
+                                            </Text>
+                                        )}
+                                    </>
                                 ) : (
                                     <Text c="dimmed" size="sm">
                                         Não há dados de {anosComparacao.join(' e ')} suficientes pra comparar esse curso ainda.

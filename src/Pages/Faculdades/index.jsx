@@ -10,6 +10,7 @@ import {
 } from '@mantine/core';
 import classes from '../Faculdades/Faculdades.module.css';
 import { CardCurso } from '../../components/Card'
+import { GrupoEstado } from '../../components/GrupoEstado'
 import { useState, useEffect } from 'react';
 import api from '../../services/api'
 const estadosMap = {
@@ -189,21 +190,13 @@ export const Faculdades = () => {
                 Object.keys(dadosAgrupados).sort().map((sigla) => {
                   const itens = dadosAgrupados[sigla];
                   return (
-                  <Box key={sigla} mb={50}>
-                    {/* Cabeçalho do Estado Estilo SISU */}
-                    <Group mb="lg" gap="xs">
-                      <Box bg="blue.7" px={8} py={2} style={{ borderRadius: 4 }}>
-                        <Text c="white" fw={800}>{sigla}</Text>
+                    <GrupoEstado key={sigla} sigla={sigla} nomeEstado={estadosMap[sigla]}>
+                      <Box className={classes.resultsGrid}>
+                        {itens.map((item) => (
+                          <CardCurso key={item.id_projeto} dados={item} />
+                        ))}
                       </Box>
-                      <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
-                    </Group>
-
-                    <Box className={classes.resultsGrid}>
-                      {itens.map((item) => (
-                        <CardCurso key={item.id_projeto} dados={item} />
-                      ))}
-                    </Box>
-                  </Box>
+                    </GrupoEstado>
                   );
                 })
               ) : (

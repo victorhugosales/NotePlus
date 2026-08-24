@@ -18,6 +18,7 @@ import classes from '../Home/home.module.css';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { CardCurso } from '../../components/Card';
+import { GrupoEstado } from '../../components/GrupoEstado';
 import api from '../../services/api';
 import { useDisclosure } from '@mantine/hooks';
 import { useFavoritos } from '../../hooks/useFavoritos';
@@ -385,14 +386,7 @@ export const Home = () => {
               .map((sigla) => {
                 const itens = dadosAgrupados[sigla];
                 return (
-                  <Box key={sigla} mb={50}>
-                    <Group mb="lg" gap="xs">
-                      <Box bg="blue.7" px={8} py={2} style={{ borderRadius: 4 }}>
-                        <Text c="white" fw={800}>{sigla}</Text>
-                      </Box>
-                      <Text fw={700} size="xl">- {estadosMap[sigla] || 'ESTADO'}</Text>
-                    </Group>
-
+                  <GrupoEstado key={sigla} sigla={sigla} nomeEstado={estadosMap[sigla]}>
                     <Box className={classes.resultsGrid}>
                       {itens.map((item) => (
                         <CardCurso
@@ -403,7 +397,7 @@ export const Home = () => {
                         />
                       ))}
                     </Box>
-                  </Box>
+                  </GrupoEstado>
                 );
               })
           ) : (
