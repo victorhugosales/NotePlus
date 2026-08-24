@@ -9,7 +9,7 @@ import {
   ActionIcon,
   Tooltip
 } from '@mantine/core';
-import { IconHome, IconBook, IconSchool, IconLogout, IconUser, IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { IconHome, IconBook, IconSchool, IconLogout, IconUser, IconChevronLeft, IconChevronRight, IconUpload } from '@tabler/icons-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import classes from './Sidebar.module.css';
@@ -28,11 +28,17 @@ const LINKS = [
 export const Sidebar = ({ collapsed, onToggleCollapse }) => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('@NotePlus:token');
     setIsLoggedIn(!!token); // Transforma em booleano (true se houver token, false se não)
+
+    const usuario = JSON.parse(localStorage.getItem('@NotePlus:user') || 'null');
+    setIsAdmin(!!usuario?.is_admin);
   }, []);
+
+  const links = isAdmin ? [...LINKS, { to: '/admin/importar-notas', icon: IconUpload, label: 'Admin' }] : LINKS;
 
   const handleLogout = () => {
     // 1. Limpa TUDO do storage (token e dados do usuário)
@@ -76,7 +82,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
 
           {/* LINKS - Virarão linha no mobile */}
           <Stack className={classes.linksStack} gap="sm">
-            {LINKS.map((item) => (
+            {links.map((item) => (
               <Tooltip key={item.to} label={item.label} position="right" disabled={!collapsed} withinPortal>
                 <Anchor component={NavLink} to={item.to} className={classes.link} underline="never">
                   <Group gap="xs" className={classes.linkGroup} justify={collapsed ? 'center' : 'flex-start'} wrap="nowrap">

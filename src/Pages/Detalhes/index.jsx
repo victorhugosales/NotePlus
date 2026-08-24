@@ -22,10 +22,7 @@ import { CardDetails } from '../../components/CardDetails'
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { tocarToggleLigado, tocarToggleDesligado } from '../../utils/sons';
-
-// Anos disponíveis pra comparação na Visão Avançada. Mesma lista de opções
-// habilitadas do seletor de edição do SISU (2024/2023 ainda não têm dados).
-const ANOS_COMPARACAO = ['2025', '2026'];
+import { useAnosDisponiveis } from '../../hooks/useAnosDisponiveis';
 
 // Paleta pra colorir uma linha por modalidade no gráfico de evolução.
 const CORES_LINHAS = ['#05AE76', '#4C6EF5', '#b8890a', '#E64980', '#5C5FE8', '#073636', '#03AD74', '#1098AD'];
@@ -34,7 +31,7 @@ export const Detalhes = () => {
     const location = useLocation();
     const [notas, setNotas] = useState([]);
     const [infoCurso, setInfoCurso] = useState(null);
-    const [ano, setAno] = useState('2026');
+    const [ano, setAno] = useState('');
     const queryParams = new URLSearchParams(location.search);
     const cursoNome = queryParams.get('curso');
     const uniSigla = queryParams.get('uni');
@@ -56,7 +53,21 @@ export const Detalhes = () => {
     const [comparativoAnos, setComparativoAnos] = useState(null);
     const [carregandoComparativo, setCarregandoComparativo] = useState(false);
 
+    const { anos, opcoes: opcoesAno } = useAnosDisponiveis();
+    // Edições disponíveis pro gráfico de evolução, da mais antiga pra mais
+    // recente (esquerda pra direita no eixo X) — vem de /anos-disponiveis
+    // em vez de lista fixa, então cobre qualquer intervalo de anos importado.
+    const anosComparacao = useMemo(() => [...anos].reverse().map(String), [anos]);
+
+    // Sem edição definida ainda (nenhuma veio da URL/estado anterior), usa a
+    // mais recente assim que a lista de anos disponíveis chega.
     useEffect(() => {
+        if (!ano && opcoesAno.length > 0) setAno(opcoesAno[0].value);
+    }, [ano, opcoesAno]);
+
+    useEffect(() => {
+        if (!ano) return;
+
         const fetchDetalhes = async () => {
             try {
                 const response = await api.get('/pesquisar', {
@@ -108,7 +119,7 @@ export const Detalhes = () => {
             setCarregandoComparativo(true);
             try {
                 const respostas = await Promise.all(
-                    ANOS_COMPARACAO.map((anoRef) => api.get('/pesquisar', {
+                    anosComparacao.map((anoRef) => api.get('/pesquisar', {
                         params: {
                             codigo: cursoCodigo,
                             curso: cursoNome,
@@ -120,7 +131,7 @@ export const Detalhes = () => {
                 );
 
                 const porAno = {};
-                ANOS_COMPARACAO.forEach((anoRef, i) => { porAno[anoRef] = respostas[i].data; });
+                anosComparacao.forEach((anoRef, i) => { porAno[anoRef] = respostas[i].data; });
                 setComparativoAnos(porAno);
             } catch (error) {
                 console.error("Erro ao buscar comparativo entre edições", error);
@@ -130,7 +141,7 @@ export const Detalhes = () => {
         };
 
         fetchComparativo();
-    }, [visao, comparativoAnos, cursoCodigo, cursoNome, uniSigla, turnoCurso]);
+    }, [visao, comparativoAnos, cursoCodigo, cursoNome, uniSigla, turnoCurso, anosComparacao]);
 
     const navigate = useNavigate();
 
@@ -183,13 +194,13 @@ export const Detalhes = () => {
         if (!comparativoAnos) return { dadosComparativo: [], modalidadesComparativo: [] };
 
         const modalidadesSet = new Set();
-        ANOS_COMPARACAO.forEach((anoRef) => {
+        anosComparacao.forEach((anoRef) => {
             (comparativoAnos[anoRef] || []).forEach((n) => {
                 if (Number(n.vagas) > 0 && Number(n.nota_corte) > 0) modalidadesSet.add(n.modalidade);
             });
         });
 
-        const linhas = ANOS_COMPARACAO.map((anoRef) => {
+        const linhas = anosComparacao.map((anoRef) => {
             const linha = { ano: anoRef };
             (comparativoAnos[anoRef] || []).forEach((n) => {
                 if (Number(n.vagas) > 0 && Number(n.nota_corte) > 0) {
@@ -200,7 +211,7 @@ export const Detalhes = () => {
         });
 
         return { dadosComparativo: linhas, modalidadesComparativo: [...modalidadesSet] };
-    }, [comparativoAnos]);
+    }, [comparativoAnos, anosComparacao]);
 
     return (
         <Container className={classes.maincontainer} fluid>
@@ -256,12 +267,7 @@ export const Detalhes = () => {
                             description="Selecione o ano base"
                             value={ano}
                             onChange={(event) => setAno(event.currentTarget.value)}
-                            data={[
-                                { label: '2026 (Atual)', value: '2026' },
-                                { label: '2025', value: '2025' },
-                                { label: '2024 (Em breve)', value: '2024', disabled: true },
-                                { label: '2023 (Em breve)', value: '2023', disabled: true },
-                            ]}
+                            data={opcoesAno}
                         />
                     </Group>
                 </Group>
@@ -357,7 +363,7 @@ export const Detalhes = () => {
 
                             <Paper withBorder radius="md" p="lg">
                                 <Text fw={600} mb="md">
-                                    Evolução da nota de corte: {ANOS_COMPARACAO.join(' → ')}
+                                    Evolução da nota de corte: {anosComparacao.join(' → ')}
                                 </Text>
                                 {modalidadesComparativo.length > 0 ? (
                                     <LineChart
@@ -374,7 +380,7 @@ export const Detalhes = () => {
                                     />
                                 ) : (
                                     <Text c="dimmed" size="sm">
-                                        Não há dados de {ANOS_COMPARACAO.join(' e ')} suficientes pra comparar esse curso ainda.
+                                        Não há dados de {anosComparacao.join(' e ')} suficientes pra comparar esse curso ainda.
                                     </Text>
                                 )}
                             </Paper>

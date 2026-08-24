@@ -21,6 +21,7 @@ import { CardCurso } from '../../components/Card';
 import api from '../../services/api';
 import { useDisclosure } from '@mantine/hooks';
 import { useFavoritos } from '../../hooks/useFavoritos';
+import { useAnosDisponiveis } from '../../hooks/useAnosDisponiveis';
 import { LoginRequiredModal } from '../../components/LoginRequiredModal';
 import { NotificacoesButton } from '../../components/NotificacoesButton';
 
@@ -43,7 +44,7 @@ const opcoesEstado = Object.entries(estadosMap).map(([sigla, nome]) => ({
 export const Home = () => {
   const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('home_lastSearch') || '');
   const [estado, setEstado] = useState(sessionStorage.getItem('home_lastEstado') || '');
-  const [ano, setAno] = useState(sessionStorage.getItem('home_lastAno') || '2026');
+  const [ano, setAno] = useState(sessionStorage.getItem('home_lastAno') || '');
   const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('home_lastResults')) || []);
   const [sugestoes, setSugestoes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -54,6 +55,14 @@ export const Home = () => {
   const [loginModalOpened, { open: openLoginModal, close: closeLoginModal }] = useDisclosure(false);
   const [favoritosModalOpened, { open: openFavoritosModal, close: closeFavoritosModal }] = useDisclosure(false);
   const { favoritos, isFavorito, toggleFavorito } = useFavoritos({ onNaoAutenticado: openLoginModal });
+  const { opcoes: opcoesAno } = useAnosDisponiveis();
+
+  // Sem ano salvo de uma busca anterior, usa a edição mais recente assim
+  // que a lista de anos disponíveis chega — nada fica fixo no código, então
+  // uma edição nova vira o padrão automaticamente.
+  useEffect(() => {
+    if (!ano && opcoesAno.length > 0) setAno(opcoesAno[0].value);
+  }, [ano, opcoesAno]);
 
   //organização dos Dados da DashBoard. Começa com o último valor visto
   //(sessionStorage) em vez de zerado — sem isso, toda vez que a Home
@@ -353,12 +362,9 @@ export const Home = () => {
           <Select
             size='md'
             w={140}
-            data={[
-              { label: '2026 (Atual)', value: '2026' },
-              { label: '2025', value: '2025' },
-            ]}
+            data={opcoesAno}
             value={ano}
-            onChange={(value) => setAno(value || '2026')}
+            onChange={(value) => setAno(value || opcoesAno[0]?.value || '')}
             allowDeselect={false}
           />
           <Button size="md" onClick={() => handleSearch()}>Pesquisar</Button>

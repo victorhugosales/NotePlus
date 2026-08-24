@@ -12,6 +12,7 @@ import { Cursos } from './Pages/Cursos';
 import { Faculdades } from './Pages/Faculdades';
 import { Detalhes } from './Pages/Detalhes';
 import { Perfil } from './Pages/Perfil'
+import { ImportarNotas } from './Pages/Admin/ImportarNotas';
 
 import { Navigate, Outlet } from 'react-router-dom';
 
@@ -21,6 +22,19 @@ export const RequireAuth = () => {
   const isAuthenticated = localStorage.getItem('@NotePlus:token');
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/cadastro" replace />;
+};
+
+// Área do admin: além de autenticado, o usuário salvo no localStorage
+// precisa ter is_admin — o backend confere de novo em cada request (é a
+// autorização de verdade), isso aqui só evita que um usuário comum veja a
+// tela existir.
+export const RequireAdmin = () => {
+  const isAuthenticated = localStorage.getItem('@NotePlus:token');
+  const usuario = JSON.parse(localStorage.getItem('@NotePlus:user') || 'null');
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!usuario?.is_admin) return <Navigate to="/" replace />;
+  return <Outlet />;
 };
 
 export const AppRoutes = () => {
@@ -45,6 +59,11 @@ export const AppRoutes = () => {
             {/* Perfil: exige estar autenticado */}
             <Route element={<RequireAuth />}>
               <Route path='/perfil' element={<Perfil />} />
+            </Route>
+
+            {/* Admin: exige estar autenticado E is_admin */}
+            <Route element={<RequireAdmin />}>
+              <Route path='/admin/importar-notas' element={<ImportarNotas />} />
             </Route>
           </Route>
 
