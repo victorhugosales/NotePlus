@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 import { notifications } from '@mantine/notifications';
+import { getToken } from '../utils/authStorage';
 
 // Mesma chave usada nos dois lados (favorito salvo x item de uma busca) pra
 // saber se um card já está favoritado.
@@ -29,7 +30,7 @@ export function useFavoritos({ onNaoAutenticado } = {}) {
     const [loading, setLoading] = useState(false);
 
     const carregarFavoritos = useCallback(async () => {
-        if (!localStorage.getItem('@NotePlus:token')) {
+        if (!getToken()) {
             setFavoritos([]);
             sessionStorage.removeItem(CACHE_KEY);
             return;
@@ -53,7 +54,7 @@ export function useFavoritos({ onNaoAutenticado } = {}) {
     const isFavorito = (item) => favoritosSet.has(chave(item));
 
     const toggleFavorito = async (item) => {
-        if (!localStorage.getItem('@NotePlus:token')) {
+        if (!getToken()) {
             onNaoAutenticado?.();
             return;
         }

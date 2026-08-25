@@ -15,6 +15,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import api from '../../services/api';
+import { salvarSessao } from '../../utils/authStorage';
 
 export const Cadastro = () => {
   const navigate = useNavigate();
@@ -60,8 +61,7 @@ export const Cadastro = () => {
       const response = await api.post('/usuarios', { nome, email, senha });
 
       // Cadastro já vem com token + user (login automático), igual ao /login
-      localStorage.setItem('@NotePlus:token', response.data.token);
-      localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
+      salvarSessao(response.data.token, response.data.user, true);
 
       navigate('/perfil');
     } catch (error) {
@@ -81,8 +81,7 @@ export const Cadastro = () => {
     try {
       const response = await api.post('/login/google', { credential: credentialResponse.credential });
 
-      localStorage.setItem('@NotePlus:token', response.data.token);
-      localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
+      salvarSessao(response.data.token, response.data.user, true);
 
       navigate('/perfil');
     } catch (error) {

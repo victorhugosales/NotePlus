@@ -34,6 +34,7 @@ import api from '../../services/api'
 import { modals } from '@mantine/modals'
 import { notifications } from '@mantine/notifications'
 import { efeitosSonorosAtivos, definirEfeitosSonoros, tocarToggleLigado, tocarToggleDesligado } from '../../utils/sons';
+import { getUsuario, limparSessao } from '../../utils/authStorage';
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const SENHA_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
@@ -66,8 +67,7 @@ export const Perfil = () => {
     const [tempModalidades, setTempModalidades] = useState([]);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem('@NotePlus:user');
-        const userData = storedUser ? JSON.parse(storedUser) : null;
+        const userData = getUsuario();
 
         if (!userData || !userData.id) {
             console.error("Usuário não logado");
@@ -174,8 +174,7 @@ export const Perfil = () => {
             await api.delete(`/usuario/${user.id}`);
 
             // Limpa os dados do navegador
-            localStorage.removeItem('@NotePlus:user');
-            localStorage.removeItem('@NotePlus:token');
+            limparSessao();
 
             notifications.show({
                 title: 'Conta excluída',

@@ -14,6 +14,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import classes from './Sidebar.module.css';
 import { tocarClique } from '../../utils/sons';
+import { getToken, getUsuario, limparSessao } from '../../utils/authStorage';
 
 const LINKS = [
   { to: '/', icon: IconHome, label: 'Menu' },
@@ -31,10 +32,10 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('@NotePlus:token');
+    const token = getToken();
     setIsLoggedIn(!!token); // Transforma em booleano (true se houver token, false se não)
 
-    const usuario = JSON.parse(localStorage.getItem('@NotePlus:user') || 'null');
+    const usuario = getUsuario();
     setIsAdmin(!!usuario?.is_admin);
   }, []);
 
@@ -42,8 +43,7 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
 
   const handleLogout = () => {
     // 1. Limpa TUDO do storage (token e dados do usuário)
-    localStorage.removeItem('@NotePlus:token');
-    localStorage.removeItem('@NotePlus:user');
+    limparSessao();
 
     // 2. ATUALIZA O ESTADO NA HORA para o Sidebar reagir
     setIsLoggedIn(false);

@@ -17,6 +17,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react'
 import { notifications } from '@mantine/notifications';
 import api from '../../services/api';
+import { salvarSessao } from '../../utils/authStorage';
 
 export const Login = () => {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export const Login = () => {
 
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [lembrarDeMim, setLembrarDeMim] = useState(false);
 
   const handleEntrar = async () => {
     if (!email || !senha) {
@@ -38,10 +40,9 @@ export const Login = () => {
     setLoading(true);
 
     try {
-      const response = await api.post('/login', { email, senha });
+      const response = await api.post('/login', { email, senha, lembrar: lembrarDeMim });
 
-      localStorage.setItem('@NotePlus:token', response.data.token);
-      localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
+      salvarSessao(response.data.token, response.data.user, lembrarDeMim);
 
       navigate('/');
     } catch (err) {
@@ -61,8 +62,7 @@ export const Login = () => {
     try {
       const response = await api.post('/login/google', { credential: credentialResponse.credential });
 
-      localStorage.setItem('@NotePlus:token', response.data.token);
-      localStorage.setItem('@NotePlus:user', JSON.stringify(response.data.user));
+      salvarSessao(response.data.token, response.data.user, true);
 
       navigate('/');
     } catch (err) {
@@ -100,7 +100,12 @@ export const Login = () => {
       />
 
       <Group justify="space-between" mt="md">
-        <Checkbox label="Lembrar de mim" size="xs" />
+        <Checkbox
+          label="Lembrar de mim"
+          size="xs"
+          checked={lembrarDeMim}
+          onChange={(event) => setLembrarDeMim(event.currentTarget.checked)}
+        />
         <Anchor
           component={Link}
           to="/recuperar-senha"

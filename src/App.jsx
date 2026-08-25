@@ -8,6 +8,7 @@ import './App.css'
 import { AppRoutes } from './AppRoutes';
 import api from './services/api';
 import { definirEfeitosSonoros } from './utils/sons';
+import { getToken, getUsuario } from './utils/authStorage';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -41,9 +42,8 @@ const ThemeSync = () => {
   const { setColorScheme } = useMantineColorScheme();
 
   useEffect(() => {
-    const token = localStorage.getItem('@NotePlus:token');
-    const storedUser = localStorage.getItem('@NotePlus:user');
-    const userData = storedUser ? JSON.parse(storedUser) : null;
+    const token = getToken();
+    const userData = getUsuario();
 
     if (!token || !userData?.id) return;
 

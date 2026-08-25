@@ -1,22 +1,17 @@
 import axios from 'axios';
+import { getToken, limparSessao } from '../utils/authStorage';
 
+// Local sem VITE_API_URL definido cai no backend rodando na máquina do
+// dev. Produção e homologação DEVEM setar VITE_API_URL nas env vars do
+// Vercel (um valor por ambiente/branch) — sem isso, o build aponta pro
+// localhost de quem compilou e a aplicação publicada não funciona.
 const api = axios.create({
-  //Para o vercel:
-  baseURL: import.meta.env.VITE_API_URL || 'https://homologacaonoteplusbackend.onrender.com'
-
-  //Produção:
-  //baseURL: 'https://noteplusbackend.onrender.com'
-
-  // homologação:
-  //baseURL: 'https://homologacaonoteplusbackend.onrender.com'
-
-  //Para testes locais:
-  //baseURL: 'http://localhost:3333'
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3333'
 });
 
 // Isso adiciona o token em toda chamada da API automaticamente
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('@NotePlus:token');
+  const token = getToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -30,8 +25,7 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('@NotePlus:token');
-      localStorage.removeItem('@NotePlus:user');
+      limparSessao();
     }
     return Promise.reject(error);
   }

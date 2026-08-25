@@ -24,6 +24,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { tocarToggleLigado, tocarToggleDesligado } from '../../utils/sons';
 import { useAnosDisponiveis } from '../../hooks/useAnosDisponiveis';
+import { getToken, getUsuario } from '../../utils/authStorage';
 
 // Paleta pra colorir uma linha por modalidade no gráfico de evolução.
 // Antes tinha duas cores quase idênticas (dois tons de verde muito
@@ -106,9 +107,8 @@ export const Detalhes = () => {
 
     // Carrega o perfil completo (nota do ENEM + modalidades) do usuário logado.
     useEffect(() => {
-        const token = localStorage.getItem('@NotePlus:token');
-        const storedUser = localStorage.getItem('@NotePlus:user');
-        const userData = storedUser ? JSON.parse(storedUser) : null;
+        const token = getToken();
+        const userData = getUsuario();
 
         if (!token || !userData?.id) return;
 
@@ -159,7 +159,7 @@ export const Detalhes = () => {
     const navigate = useNavigate();
 
     const handleToggleAnalise = () => {
-        const token = localStorage.getItem('@NotePlus:token');
+        const token = getToken();
         if (!token) {
             openLoginModal();
             return;

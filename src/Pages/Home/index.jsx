@@ -23,6 +23,7 @@ import api from '../../services/api';
 import { useDisclosure } from '@mantine/hooks';
 import { useFavoritos } from '../../hooks/useFavoritos';
 import { useAnosDisponiveis } from '../../hooks/useAnosDisponiveis';
+import { getToken, getUsuario } from '../../utils/authStorage';
 import { LoginRequiredModal } from '../../components/LoginRequiredModal';
 import { NotificacoesButton } from '../../components/NotificacoesButton';
 
@@ -190,8 +191,7 @@ export const Home = () => {
     const novoTema = colorScheme === 'dark' ? 'light' : 'dark';
     setColorScheme(novoTema);
 
-    const storedUser = localStorage.getItem('@NotePlus:user');
-    const userData = storedUser ? JSON.parse(storedUser) : null;
+    const userData = getUsuario();
     if (!userData?.id) return;
 
     try {
@@ -202,7 +202,7 @@ export const Home = () => {
   };
 
   const handleAbrirFavoritados = () => {
-    if (!localStorage.getItem('@NotePlus:token')) {
+    if (!getToken()) {
       openLoginModal();
       return;
     }

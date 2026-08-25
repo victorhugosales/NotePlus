@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Button, Modal, Stack, Text, Group, Box, Indicator, Loader, Center } from '@mantine/core';
 import { IconBell } from '@tabler/icons-react';
 import api from '../../services/api';
+import { getToken } from '../../utils/authStorage';
 
 const formatarData = (isoString) => {
     try {
@@ -33,7 +34,7 @@ export const NotificacoesButton = ({ onNaoAutenticado, className }) => {
     const naoLidas = notificacoes.filter((n) => !n.lida).length;
 
     const carregar = useCallback(async () => {
-        if (!localStorage.getItem('@NotePlus:token')) return;
+        if (!getToken()) return;
         setLoading(true);
         try {
             const response = await api.get('/notificacoes');
@@ -49,7 +50,7 @@ export const NotificacoesButton = ({ onNaoAutenticado, className }) => {
     useEffect(() => { carregar(); }, [carregar]);
 
     const handleAbrir = () => {
-        if (!localStorage.getItem('@NotePlus:token')) {
+        if (!getToken()) {
             onNaoAutenticado?.();
             return;
         }
