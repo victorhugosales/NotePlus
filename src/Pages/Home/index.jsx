@@ -11,9 +11,13 @@ import {
   Loader,
   Center,
   Modal,
+  Collapse,
   useMantineColorScheme
 } from '@mantine/core';
-import { IconBook2, IconChartBar, IconBuildingBank, IconMapPin, IconPalette, IconStar } from '@tabler/icons-react';
+import {
+  IconBook2, IconChartBar, IconBuildingBank, IconMapPin, IconPalette, IconStar,
+  IconFilter, IconChevronDown, IconChevronUp,
+} from '@tabler/icons-react';
 import classes from '../Home/home.module.css';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -26,22 +30,9 @@ import { useAnosDisponiveis } from '../../hooks/useAnosDisponiveis';
 import { getToken, getUsuario } from '../../utils/authStorage';
 import { LoginRequiredModal } from '../../components/LoginRequiredModal';
 import { NotificacoesButton } from '../../components/NotificacoesButton';
-
-const estadosMap = {
-  'AC': 'ACRE', 'AL': 'ALAGOAS', 'AM': 'AMAZONAS', 'AP': 'AMAPÁ', 'BA': 'BAHIA',
-  'CE': 'CEARÁ', 'DF': 'DISTRITO FEDERAL', 'ES': 'ESPÍRITO SANTO', 'GO': 'GOIÁS',
-  'MA': 'MARANHÃO', 'MG': 'MINAS GERAIS', 'MS': 'MATO GROSSO DO SUL', 'MT': 'MATO GROSSO',
-  'PA': 'PARÁ', 'PB': 'PARAÍBA', 'PE': 'PERNAMBUCO', 'PI': 'PIAUÍ', 'PR': 'PARANÁ',
-  'RJ': 'RIO DE JANEIRO', 'RN': 'RIO GRANDE DO NORTE', 'RO': 'RONDÔNIA', 'RR': 'RORAIMA',
-  'RS': 'RIO GRANDE DO SUL', 'SC': 'SANTA CATARINA', 'SE': 'SERGIPE', 'SP': 'SÃO PAULO',
-  'TO': 'TOCANTINS'
-};
-
-// Opções do filtro de Estado: "CE - CEARÁ", etc. Vazio = todos os estados.
-const opcoesEstado = Object.entries(estadosMap).map(([sigla, nome]) => ({
-  value: sigla,
-  label: `${sigla} - ${nome}`
-}));
+import { estadosMap, opcoesEstado } from '../../utils/estados';
+import { FiltroCascataModal } from '../../components/FiltroCascataModal';
+import { FiltroCursosModal } from '../../components/FiltroCursosModal';
 
 export const Home = () => {
   const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('home_lastSearch') || '');
@@ -56,6 +47,10 @@ export const Home = () => {
   const { colorScheme, setColorScheme } = useMantineColorScheme();
   const [loginModalOpened, { open: openLoginModal, close: closeLoginModal }] = useDisclosure(false);
   const [favoritosModalOpened, { open: openFavoritosModal, close: closeFavoritosModal }] = useDisclosure(false);
+  const [filtrosOpened, { toggle: toggleFiltros }] = useDisclosure(false);
+  const [municipioModalOpened, { open: openMunicipioModal, close: closeMunicipioModal }] = useDisclosure(false);
+  const [instituicaoModalOpened, { open: openInstituicaoModal, close: closeInstituicaoModal }] = useDisclosure(false);
+  const [cursoModalOpened, { open: openCursoModal, close: closeCursoModal }] = useDisclosure(false);
   const { favoritos, isFavorito, toggleFavorito } = useFavoritos({ onNaoAutenticado: openLoginModal });
   const { opcoes: opcoesAno } = useAnosDisponiveis();
 
@@ -141,46 +136,84 @@ export const Home = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [pesquisa]);
 
-  //Input de pesquisa
-  const handleSearch = async (termoManual) => {
-    const termoFinal = (typeof termoManual === 'string' ? termoManual : pesquisa).trim();
-    if (!termoFinal) return;
+  // Turno entra na chave: matutino e vespertino do mesmo curso têm vagas e
+  // nota de corte próprias, não podem ser somados juntos. Compartilhado
+  // entre a busca por termo e os 3 filtros em cascata (município,
+  // instituição, curso) — todos consomem /pesquisar e precisam do mesmo
+  // agrupamento antes de renderizar em CardCurso.
+  const agruparResultados = (dados) => {
+    const mapaAgrupado = {};
+    dados.forEach(item => {
+      const chave = `${item.codigo_curso}-${item.sigla_universidade}-${item.turno || ''}`;
 
+      if (!mapaAgrupado[chave]) {
+        mapaAgrupado[chave] = { ...item, vagas: Number(item.vagas) };
+      } else {
+        mapaAgrupado[chave].vagas += Number(item.vagas);
+      }
+    });
+    return Object.values(mapaAgrupado);
+  };
+
+  // Chama /pesquisar, agrupa e persiste o resultado — usado tanto pela
+  // busca por termo quanto pelos 3 filtros em cascata, que só variam nos
+  // parâmetros enviados e no texto/estado exibidos depois.
+  const executarPesquisa = async (params, { termoExibicao, estadoExibicao = '' }) => {
     setLoading(true);
     try {
-      const response = await api.get('/pesquisar', {
-        params: {
-          curso: termoFinal.toUpperCase(),
-          global: true,
-          ano,
-          ...(estado && { uf: estado })
-        }
-      });
+      const response = await api.get('/pesquisar', { params });
+      const final = agruparResultados(response.data);
 
-      const mapaAgrupado = {};
-      response.data.forEach(item => {
-        // Turno entra na chave: matutino e vespertino do mesmo curso têm
-        // vagas e nota de corte próprias, não podem ser somados juntos.
-        const chave = `${item.codigo_curso}-${item.sigla_universidade}-${item.turno || ''}`;
-
-        if (!mapaAgrupado[chave]) {
-          mapaAgrupado[chave] = { ...item, vagas: Number(item.vagas) };
-        } else {
-          mapaAgrupado[chave].vagas += Number(item.vagas);
-        }
-      });
-
-      const final = Object.values(mapaAgrupado);
       setResultados(final);
+      setPesquisa(termoExibicao);
+      setEstado(estadoExibicao);
       sessionStorage.setItem('home_lastResults', JSON.stringify(final));
-      sessionStorage.setItem('home_lastSearch', termoFinal);
-      sessionStorage.setItem('home_lastEstado', estado);
+      sessionStorage.setItem('home_lastSearch', termoExibicao);
+      sessionStorage.setItem('home_lastEstado', estadoExibicao);
       sessionStorage.setItem('home_lastAno', ano);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  //Input de pesquisa
+  const handleSearch = async (termoManual) => {
+    const termoFinal = (typeof termoManual === 'string' ? termoManual : pesquisa).trim();
+    if (!termoFinal) return;
+
+    await executarPesquisa(
+      { curso: termoFinal.toUpperCase(), global: true, ano, ...(estado && { uf: estado }) },
+      { termoExibicao: termoFinal, estadoExibicao: estado }
+    );
+  };
+
+  // Filtro "Municípios": escolheu o estado e depois o município no modal —
+  // resultado são os cursos oferecidos naquele município.
+  const handleSelecionarMunicipio = (municipio, uf) => {
+    executarPesquisa(
+      { cidade: municipio, uf, ano },
+      { termoExibicao: municipio, estadoExibicao: uf }
+    );
+  };
+
+  // Filtro "Instituições": mesma mecânica, mas o passo final é a
+  // instituição escolhida dentro do estado.
+  const handleSelecionarInstituicao = (instituicao, uf) => {
+    executarPesquisa(
+      { universidade: instituicao, uf, ano },
+      { termoExibicao: instituicao, estadoExibicao: uf }
+    );
+  };
+
+  // Filtro "Cursos": lista flat, sem cascata de estado — resultado é o
+  // mesmo formato da Pesquisa Geral (agrupado por todos os estados).
+  const handleSelecionarCurso = (curso) => {
+    executarPesquisa(
+      { curso, global: true, ano },
+      { termoExibicao: curso }
+    );
   };
 
   const dadosAgrupados = agruparPorEstado(resultados);
@@ -252,6 +285,31 @@ export const Home = () => {
           </SimpleGrid>
         )}
       </Modal>
+
+      <FiltroCascataModal
+        opened={municipioModalOpened}
+        onClose={closeMunicipioModal}
+        titulo="Municípios"
+        tipo="municipio"
+        ano={ano}
+        onSelecionar={handleSelecionarMunicipio}
+      />
+
+      <FiltroCascataModal
+        opened={instituicaoModalOpened}
+        onClose={closeInstituicaoModal}
+        titulo="Instituições"
+        tipo="instituicao"
+        ano={ano}
+        onSelecionar={handleSelecionarInstituicao}
+      />
+
+      <FiltroCursosModal
+        opened={cursoModalOpened}
+        onClose={closeCursoModal}
+        ano={ano}
+        onSelecionar={handleSelecionarCurso}
+      />
 
       <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
         <Group gap="xs">
@@ -370,6 +428,31 @@ export const Home = () => {
           />
           <Button size="md" onClick={() => handleSearch()}>Pesquisar</Button>
         </Group>
+
+        <Box mt={12}>
+          <Button
+            variant="subtle"
+            size="sm"
+            leftSection={<IconFilter size={16} />}
+            rightSection={filtrosOpened ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+            onClick={toggleFiltros}
+          >
+            Filtros
+          </Button>
+          <Collapse in={filtrosOpened}>
+            <Group mt="sm">
+              <Button variant="outline" leftSection={<IconMapPin size={16} />} onClick={openMunicipioModal}>
+                Municípios
+              </Button>
+              <Button variant="outline" leftSection={<IconBuildingBank size={16} />} onClick={openInstituicaoModal}>
+                Instituições
+              </Button>
+              <Button variant="outline" leftSection={<IconBook2 size={16} />} onClick={openCursoModal}>
+                Cursos
+              </Button>
+            </Group>
+          </Collapse>
+        </Box>
       </Box>
 
       {/* Resultados em cards */}

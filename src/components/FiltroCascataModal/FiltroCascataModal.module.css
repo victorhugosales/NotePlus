@@ -1,0 +1,29 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+.item {
+  padding: 10px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--mantine-color-default-border);
+  text-align: center;
+  transition: background-color 100ms ease;
+}
+
+.item:hover {
+  background-color: var(--mantine-color-default-hover);
+}
+
+.itemLista {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 6px;
+  transition: background-color 100ms ease;
+}
+
+.itemLista:hover {
+  background-color: var(--mantine-color-default-hover);
+}
