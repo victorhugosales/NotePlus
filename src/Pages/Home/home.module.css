@@ -68,6 +68,26 @@
     color: #868e96;
 }
 
+/* Aviso de busca vazia: clicou em "Pesquisar" sem digitar nada. Tremor +
+   aura vermelha temporária no input, pra deixar claro que faltou algo em
+   vez de simplesmente não acontecer nada (usuário achava que o site tinha
+   travado). */
+@keyframes shakeErroBusca {
+    10%, 90% { transform: translateX(-2px); }
+    20%, 80% { transform: translateX(4px); }
+    30%, 50%, 70% { transform: translateX(-8px); }
+    40%, 60% { transform: translateX(8px); }
+}
+
+.buscaErro {
+    animation: shakeErroBusca 0.5s ease-in-out;
+}
+
+.buscaErro input {
+    border-color: #e03131 !important;
+    box-shadow: 0 0 0 3px rgba(224, 49, 49, 0.25) !important;
+}
+
 /* Grid dos cards de resultado: cresce até o espaço disponível, mas nunca
    deixa o card ficar mais estreito que 240px — evita a lotação de colunas
    demais em telas largas que deixava tudo espremido. */

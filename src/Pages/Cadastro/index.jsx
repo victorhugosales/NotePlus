@@ -35,9 +35,12 @@ export const Cadastro = () => {
       isValid = false;
     }
 
-    const emailRegex = /@gmail\.com$|@outlook\.com$/;
-    if (!emailRegex.test(email.toLowerCase())) {
-      novoErros.email = 'Use um e-mail @gmail.com ou @outlook.com';
+    // Antes só aceitava @gmail.com/@outlook.com — restrição artificial que
+    // barrava gente com e-mail institucional, @hotmail, @yahoo etc. Agora
+    // valida só o formato (algo@algo.algo), sem lista de domínios permitidos.
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      novoErros.email = 'Digite um e-mail válido';
       isValid = false;
     }
 
