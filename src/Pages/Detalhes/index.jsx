@@ -12,7 +12,8 @@ import {
     SegmentedControl,
     Loader,
     Center,
-    UnstyledButton
+    UnstyledButton,
+    Alert
 } from '@mantine/core';
 import { BarChart, LineChart } from '@mantine/charts';
 import classes from '../Detalhes/Detalhes.module.css'
@@ -25,6 +26,17 @@ import { notifications } from '@mantine/notifications';
 import { tocarToggleLigado, tocarToggleDesligado } from '../../utils/sons';
 import { useAnosDisponiveis } from '../../hooks/useAnosDisponiveis';
 import { getToken, getUsuario } from '../../utils/authStorage';
+import { calcularTendencia } from '../../utils/tendencia';
+import { IconTrendingUp, IconTrendingDown, IconMinus } from '@tabler/icons-react';
+
+// Últimos N anos usados na previsão — pedido do usuário: "3 ou 4 anos".
+const JANELA_TENDENCIA = 4;
+
+const TENDENCIA_INFO = {
+    alta: { cor: 'teal', label: 'Tendência de alta', Icon: IconTrendingUp },
+    queda: { cor: 'red', label: 'Tendência de queda', Icon: IconTrendingDown },
+    estavel: { cor: 'gray', label: 'Tendência estável', Icon: IconMinus },
+};
 
 // Paleta pra colorir uma linha por modalidade no gráfico de evolução.
 // Antes tinha duas cores quase idênticas (dois tons de verde muito
@@ -248,6 +260,36 @@ export const Detalhes = () => {
         ? seriesComparativo.filter((s) => s.name === modalidadeFoco)
         : seriesComparativo;
 
+    // Previsão de tendência (regressão linear clássica) pra modalidade em
+    // foco — só calcula quando o usuário clicou numa linha da legenda,
+    // reaproveitando o mesmo estado do gráfico de evolução. Nada de nova
+    // chamada de rede: usa os pontos já carregados em dadosComparativo.
+    const tendenciaFoco = useMemo(() => {
+        if (!modalidadeFoco) return null;
+
+        const pontos = dadosComparativo
+            .map((linha) => ({ ano: Number(linha.ano), nota: linha[modalidadeFoco] }))
+            .filter((p) => typeof p.nota === 'number' && !Number.isNaN(p.ano))
+            .sort((a, b) => a.ano - b.ano)
+            .slice(-JANELA_TENDENCIA);
+
+        const resultado = calcularTendencia(pontos);
+        if (!resultado) return null;
+
+        const corModalidade = seriesComparativo.find((s) => s.name === modalidadeFoco)?.color;
+
+        const dadosGrafico = pontos.map((p, i) => {
+            const linha = { ano: String(p.ano), nota_corte: p.nota };
+            // O último ponto histórico também recebe o valor de "previsao"
+            // pra linha tracejada nascer exatamente onde a sólida termina.
+            if (i === pontos.length - 1) linha.previsao = p.nota;
+            return linha;
+        });
+        dadosGrafico.push({ ano: `${resultado.anoPrevisto} (previsão)`, previsao: resultado.previsao });
+
+        return { ...resultado, pontos, dadosGrafico, corModalidade };
+    }, [modalidadeFoco, dadosComparativo, seriesComparativo]);
+
     return (
         <Container className={classes.maincontainer} fluid>
             {/* Modal exibido quando um usuário deslogado tenta ligar a Análise Inteligente */}
@@ -453,6 +495,55 @@ export const Detalhes = () => {
                                     <Text c="dimmed" size="sm">
                                         Não há dados de {anosComparacao.join(' e ')} suficientes pra comparar esse curso ainda.
                                     </Text>
+                                )}
+                            </Paper>
+
+                            <Paper withBorder radius="md" p="lg">
+                                <Text fw={600} mb="md">Previsão de tendência</Text>
+                                {!modalidadeFoco && (
+                                    <Text c="dimmed" size="sm">
+                                        Clique em uma modalidade no gráfico de evolução acima para ver a previsão.
+                                    </Text>
+                                )}
+                                {modalidadeFoco && !tendenciaFoco && (
+                                    <Text c="dimmed" size="sm">
+                                        Dados insuficientes de {modalidadeFoco} para calcular uma tendência.
+                                    </Text>
+                                )}
+                                {tendenciaFoco && (
+                                    <>
+                                        <LineChart
+                                            h={260}
+                                            data={tendenciaFoco.dadosGrafico}
+                                            dataKey="ano"
+                                            series={[
+                                                { name: 'nota_corte', label: 'Histórico', color: tendenciaFoco.corModalidade },
+                                                { name: 'previsao', label: 'Previsão', color: tendenciaFoco.corModalidade, strokeDasharray: '6 4' },
+                                            ]}
+                                            curveType="linear"
+                                            connectNulls
+                                            strokeWidth={3}
+                                            dotProps={{ r: 5, strokeWidth: 2 }}
+                                            yAxisProps={{ domain: ['dataMin - 20', 'dataMax + 20'] }}
+                                        />
+                                        <Alert
+                                            mt="md"
+                                            color={TENDENCIA_INFO[tendenciaFoco.direcao].cor}
+                                            icon={(() => {
+                                                const { Icon } = TENDENCIA_INFO[tendenciaFoco.direcao];
+                                                return <Icon size={18} />;
+                                            })()}
+                                        >
+                                            {TENDENCIA_INFO[tendenciaFoco.direcao].label}: com base nos últimos{' '}
+                                            {tendenciaFoco.pontos.length} anos, a nota de corte de {modalidadeFoco} pode
+                                            chegar a {tendenciaFoco.previsao} em {tendenciaFoco.anoPrevisto}.
+                                            {tendenciaFoco.confiancaBaixa && (
+                                                <Text component="span" size="sm" fs="italic">
+                                                    {' '}Previsão baseada em poucos dados — use como estimativa aproximada.
+                                                </Text>
+                                            )}
+                                        </Alert>
+                                    </>
                                 )}
                             </Paper>
                         </Stack>
