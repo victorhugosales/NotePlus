@@ -5,49 +5,41 @@ import {
   Text,
   Box,
   Autocomplete,
+  Select,
   Loader,
   Center,
+  Collapse,
 } from '@mantine/core';
+import { IconFilter, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
 import classes from '../Faculdades/Faculdades.module.css';
 import { CardCurso } from '../../components/Card'
 import { GrupoEstado } from '../../components/GrupoEstado'
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../../services/api'
-const estadosMap = {
-  'AC': 'ACRE',
-  'AL': 'ALAGOAS',
-  'AM': 'AMAZONAS',
-  'AP': 'AMAPÁ',
-  'BA': 'BAHIA',
-  'CE': 'CEARÁ',
-  'DF': 'DISTRITO FEDERAL',
-  'ES': 'ESPÍRITO SANTO',
-  'GO': 'GOIÁS',
-  'MA': 'MARANHÃO',
-  'MG': 'MINAS GERAIS',
-  'MS': 'MATO GROSSO DO SUL',
-  'MT': 'MATO GROSSO',
-  'PA': 'PARÁ',
-  'PB': 'PARAÍBA',
-  'PE': 'PERNAMBUCO',
-  'PI': 'PIAUÍ',
-  'PR': 'PARANÁ',
-  'RJ': 'RIO DE JANEIRO',
-  'RN': 'RIO GRANDE DO NORTE',
-  'RO': 'RONDÔNIA',
-  'RR': 'RORAIMA',
-  'RS': 'RIO GRANDE DO SUL',
-  'SC': 'SANTA CATARINA',
-  'SE': 'SERGIPE',
-  'SP': 'SÃO PAULO',
-  'TO': 'TOCANTINS'
-};
+import { estadosMap, opcoesEstado } from '../../utils/estados';
+import { useAvisoBuscaVazia } from '../../hooks/useAvisoBuscaVazia';
 
 export const Faculdades = () => {
-  const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('lastSearch') || '');
-  const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('lastResults')) || []);
+  const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('faculdades_lastSearch') || '');
+  const [estado, setEstado] = useState(sessionStorage.getItem('faculdades_lastEstado') || '');
+  const [categoria, setCategoria] = useState(sessionStorage.getItem('faculdades_lastCategoria') || '');
+  const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('faculdades_lastResults')) || []);
   const [sugestoes, setSugestoes] = useState([]);
+  const [opcoesCategoria, setOpcoesCategoria] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [filtrosOpened, { toggle: toggleFiltros }] = useDisclosure(false);
+  const { buscaErro, avisarBuscaVazia } = useAvisoBuscaVazia();
+
+  // true quando o texto atual veio de uma sugestão clicada no autocomplete
+  // (sigla ou nome exatos), não de digitação livre. Nesse caso a busca usa
+  // igualdade exata em vez de ILIKE parcial — sem isso, "UFC" trazia junto
+  // UFCA, UFCAT, UFCG, UFCSPA mesmo já tendo escolhido a instituição certa
+  // na lista. selecionouSugestaoRef existe porque o Autocomplete do Mantine
+  // dispara onChange logo depois de onOptionSubmit com o mesmo valor — sem
+  // o ref, esse onChange reseta buscaExata pra false na mesma seleção.
+  const [buscaExata, setBuscaExata] = useState(false);
+  const selecionouSugestaoRef = useRef(false);
 
   const agruparPorEstado = (dados) => {
     return dados.reduce((acc, item) => {
@@ -87,22 +79,38 @@ export const Faculdades = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [pesquisa]);
 
+  // Opções do filtro de Categoria — poucos valores distintos, carrega uma
+  // vez só (cacheado no backend por 30min).
+  useEffect(() => {
+    api.get('/categorias-disponiveis').then((res) => {
+      setOpcoesCategoria(res.data.map((c) => ({ value: c, label: c })));
+    }).catch((error) => console.error("Erro ao buscar categorias disponíveis", error));
+  }, []);
+
   useEffect(() => {
     const path = location.pathname;
-    // Se saí da página de cursos e NÃO fui para detalhes, limpa o cache
-    if (path !== '/cursos' && !path.includes('/detalhes')) {
-      sessionStorage.removeItem('lastSearch');
-      sessionStorage.removeItem('lastResults');
+    // Se saí da página de faculdades e NÃO fui para detalhes, limpa o cache
+    if (path !== '/faculdades' && !path.includes('/detalhes')) {
+      sessionStorage.removeItem('faculdades_lastSearch');
+      sessionStorage.removeItem('faculdades_lastResults');
     }
   }, [location.pathname]);
 
   const handleSearch = async () => {
-    if (!pesquisa.trim()) return;
+    if (!pesquisa.trim()) {
+      avisarBuscaVazia('Digite uma instituição para pesquisar.');
+      return;
+    }
     setLoading(true);
 
     try {
       const response = await api.get('/pesquisar', {
-        params: { universidade: pesquisa.trim().toUpperCase() }
+        params: {
+          universidade: pesquisa.trim().toUpperCase(),
+          ...(estado && { uf: estado }),
+          ...(categoria && { categoria }),
+          ...(buscaExata && { exato: true }),
+        }
       });
 
       const mapaAgrupado = {};
@@ -121,8 +129,10 @@ export const Faculdades = () => {
       const final = Object.values(mapaAgrupado);
       setResultados(final);
 
-      sessionStorage.setItem('lastResults_Facul', JSON.stringify(final));
-      sessionStorage.setItem('lastSearch_Facul', pesquisa);
+      sessionStorage.setItem('faculdades_lastResults', JSON.stringify(final));
+      sessionStorage.setItem('faculdades_lastSearch', pesquisa);
+      sessionStorage.setItem('faculdades_lastEstado', estado);
+      sessionStorage.setItem('faculdades_lastCategoria', categoria);
     } catch (error) { console.error(error); } finally { setLoading(false); }
   };
 
@@ -130,82 +140,125 @@ export const Faculdades = () => {
 
   const handleClear = () => {
     setPesquisa('');
+    setBuscaExata(false);
     setResultados([]);
     setSugestoes([]);
-    sessionStorage.removeItem('lastSearch');
-    sessionStorage.removeItem('lastResults');
+    sessionStorage.removeItem('faculdades_lastSearch');
+    sessionStorage.removeItem('faculdades_lastResults');
   };
 
   return (
     <Container className={classes.mainContainer} fluid>
-      <Group mt={20}>
-        {/* Headder */}
-        <Box>
-          <Text fw={700} size="24px" style={{ lineHeight: 1 }}>Faculdades</Text>
-          <Text c="dimmed" size="sm" mt={5}>Acompanhe as Faculdades que você deseja ingressar.</Text>
-        </Box>
-        {/* Pesquisa */}
-        <Group gap={25}>
-          <Autocomplete
-            placeholder="Digite a faculdade (ex: UFC ou Universidade)"
-            className={classes.searchInput}
-            size="md"
-            w={700}
-            data={sugestoes}
-            value={pesquisa}
-            onChange={setPesquisa}
-            filter={({ options }) => options}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+      <Box className={classes.header} mt={20}>
+        <Text fw={700} size="24px" style={{ lineHeight: 1 }}>Faculdades</Text>
+        <Text c="dimmed" size="sm" mt={5}>Acompanhe as Faculdades que você deseja ingressar.</Text>
+      </Box>
 
-            // Botão de limpar (X) dentro do input
-            rightSectionPointerEvents="all"
-            rightSection={
-              pesquisa && (
-                <Text
-
-                  style={{ cursor: 'pointer', opacity: 0.5 }}
-                  onClick={handleClear}
-                  size="xs"
-                  fw={700}
-                >
-                  X
-                </Text>
-              )
+      {/* HEADER DE PESQUISA */}
+      <Group className={classes.searchBar} gap={25} mt="lg">
+        <Autocomplete
+          placeholder="Digite a faculdade (ex: UFC ou Universidade)"
+          className={buscaErro ? classes.buscaErro : classes.searchInput}
+          size="md"
+          w={700}
+          data={sugestoes}
+          value={pesquisa}
+          onChange={(value) => {
+            setPesquisa(value);
+            if (selecionouSugestaoRef.current) {
+              selecionouSugestaoRef.current = false;
+            } else {
+              setBuscaExata(false);
             }
-          />
-          <Button
-            className={classes.searchButton}
-            onClick={handleSearch}
-            loading={loading}
-          >Pesquisar</Button>
-          <Button variant="outline" color="gray">Filtros</Button>
-        </Group>
-        {/* Resultados */}
-        <Box mt={30} w="100%">
-          {loading ? (
-            <Center><Loader /></Center>
-          ) : (
-            <Box>
-              {Object.keys(dadosAgrupados).length > 0 ? (
-                Object.keys(dadosAgrupados).sort().map((sigla) => {
-                  const itens = dadosAgrupados[sigla];
-                  return (
-                    <GrupoEstado key={sigla} sigla={sigla} nomeEstado={estadosMap[sigla]}>
-                      <Box className={classes.resultsGrid}>
-                        {itens.map((item) => (
-                          <CardCurso key={item.id_projeto} dados={item} />
-                        ))}
-                      </Box>
-                    </GrupoEstado>
-                  );
-                })
-              ) : (
-                <Text ta="center" c="dimmed" mt={50}>Nenhuma instituição encontrada.</Text>
-              )}
-            </Box>
-          )}
-        </Box>
+          }}
+          onOptionSubmit={() => {
+            selecionouSugestaoRef.current = true;
+            setBuscaExata(true);
+          }}
+          filter={({ options }) => options}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+
+          // Botão de limpar (X) dentro do input
+          rightSectionPointerEvents="all"
+          rightSection={
+            pesquisa && (
+              <Text
+                style={{ cursor: 'pointer', opacity: 0.5 }}
+                onClick={handleClear}
+                size="xs"
+                fw={700}
+              >
+                X
+              </Text>
+            )
+          }
+        />
+        <Button
+          className={classes.searchButton}
+          onClick={handleSearch}
+          loading={loading}
+        >Pesquisar</Button>
       </Group>
+
+      <Box mt={12}>
+        <Button
+          variant="subtle"
+          size="sm"
+          leftSection={<IconFilter size={16} />}
+          rightSection={filtrosOpened ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+          onClick={toggleFiltros}
+        >
+          Filtros
+        </Button>
+        <Collapse in={filtrosOpened}>
+          <Group mt="sm" gap={25}>
+            <Select
+              size="md"
+              w={220}
+              placeholder="Todos os estados"
+              data={opcoesEstado}
+              value={estado || null}
+              onChange={(value) => setEstado(value || '')}
+              searchable
+              clearable
+            />
+
+            <Select
+              size="md"
+              w={220}
+              placeholder="Todas as categorias"
+              data={opcoesCategoria}
+              value={categoria || null}
+              onChange={(value) => setCategoria(value || '')}
+              clearable
+            />
+          </Group>
+        </Collapse>
+      </Box>
+
+      {/* Resultados em Cards, agrupados por estado */}
+      <Box mt={30}>
+        {loading ? (
+          <Center mt={50}><Loader color="blue" /></Center>
+        ) : Object.keys(dadosAgrupados).length > 0 ? (
+          Object.keys(dadosAgrupados).sort().map((sigla) => {
+            const itens = dadosAgrupados[sigla];
+            return (
+              <GrupoEstado key={sigla} sigla={sigla} nomeEstado={estadosMap[sigla]}>
+                <Box className={classes.resultsGrid}>
+                  {itens.map((item) => (
+                    <CardCurso key={item.id_projeto} dados={item} />
+                  ))}
+                </Box>
+              </GrupoEstado>
+            );
+          })
+        ) : (
+          <Text c="dimmed" ta="center" mt={50}>
+            {pesquisa ? 'Nenhuma instituição encontrada.' : 'Pesquise uma instituição para ver os cursos oferecidos.'}
+          </Text>
+        )}
+      </Box>
     </Container>
   );
 }

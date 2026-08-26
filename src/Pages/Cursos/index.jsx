@@ -7,43 +7,49 @@ import {
   Select,
   Box,
   Loader,
-  Center
+  Center,
+  Collapse,
 } from '@mantine/core';
+import { IconFilter, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import classes from '../Cursos/Cursos.module.css';
 import { useState, useEffect } from 'react';
 import { useDisclosure } from '@mantine/hooks';
 import { CardCurso } from '../../components/Card';
+import { GrupoEstado } from '../../components/GrupoEstado';
 import api from '../../services/api'
 import { useFavoritos } from '../../hooks/useFavoritos';
 import { LoginRequiredModal } from '../../components/LoginRequiredModal';
-
-const estadosMap = {
-  'AC': 'ACRE', 'AL': 'ALAGOAS', 'AM': 'AMAZONAS', 'AP': 'AMAPÁ', 'BA': 'BAHIA',
-  'CE': 'CEARÁ', 'DF': 'DISTRITO FEDERAL', 'ES': 'ESPÍRITO SANTO', 'GO': 'GOIÁS',
-  'MA': 'MARANHÃO', 'MG': 'MINAS GERAIS', 'MS': 'MATO GROSSO DO SUL', 'MT': 'MATO GROSSO',
-  'PA': 'PARÁ', 'PB': 'PARAÍBA', 'PE': 'PERNAMBUCO', 'PI': 'PIAUÍ', 'PR': 'PARANÁ',
-  'RJ': 'RIO DE JANEIRO', 'RN': 'RIO GRANDE DO NORTE', 'RO': 'RONDÔNIA', 'RR': 'RORAIMA',
-  'RS': 'RIO GRANDE DO SUL', 'SC': 'SANTA CATARINA', 'SE': 'SERGIPE', 'SP': 'SÃO PAULO',
-  'TO': 'TOCANTINS'
-};
-
-// Opções do filtro de Estado, já em ordem alfabética (Object.entries segue a
-// ordem de inserção do objeto acima, que já está A-Z).
-const opcoesEstado = Object.entries(estadosMap).map(([sigla, nome]) => ({
-  value: sigla,
-  label: `${sigla} - ${nome}`
-}));
+import { estadosMap, opcoesEstado } from '../../utils/estados';
+import { useAvisoBuscaVazia } from '../../hooks/useAvisoBuscaVazia';
 
 export const Cursos = () => {
 
-  const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('lastSearch') || '');
-  const [estado, setEstado] = useState(sessionStorage.getItem('lastEstado') || '');
-  const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('lastResults')) || []);
+  const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('cursos_lastSearch') || '');
+  const [estado, setEstado] = useState(sessionStorage.getItem('cursos_lastEstado') || '');
+  const [turno, setTurno] = useState(sessionStorage.getItem('cursos_lastTurno') || '');
+  const [grau, setGrau] = useState(sessionStorage.getItem('cursos_lastGrau') || '');
+  const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('cursos_lastResults')) || []);
   const [sugestoes, setSugestoes] = useState([]);
+  const [opcoesTurno, setOpcoesTurno] = useState([]);
+  const [opcoesGrau, setOpcoesGrau] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [loginModalOpened, { open: openLoginModal, close: closeLoginModal }] = useDisclosure(false);
+  const [filtrosOpened, { toggle: toggleFiltros }] = useDisclosure(false);
   const { isFavorito, toggleFavorito } = useFavoritos({ onNaoAutenticado: openLoginModal });
+  const { buscaErro, avisarBuscaVazia } = useAvisoBuscaVazia();
+
+  // Mesmo agrupamento por estado usado na Home e em Faculdades — evita uma
+  // lista única gigante quando a busca (ou a ausência de filtro de estado)
+  // traz cursos espalhados pelo Brasil inteiro.
+  const agruparPorEstado = (dados) => {
+    return dados.reduce((acc, item) => {
+      const uf = item.uf_campus || 'Outros';
+      if (!acc[uf]) acc[uf] = [];
+      acc[uf].push(item);
+      return acc;
+    }, {});
+  };
 
   useEffect(() => {
     const buscarSugestoes = async () => {
@@ -66,25 +72,43 @@ export const Cursos = () => {
     return () => clearTimeout(delayDebounceFn);
   }, [pesquisa]);
 
+  // Opções dos filtros de Turno e Grau — poucos valores distintos, carrega
+  // uma vez só (cacheado no backend por 30min, não precisa refazer a cada
+  // busca).
+  useEffect(() => {
+    api.get('/turnos-disponiveis').then((res) => {
+      setOpcoesTurno(res.data.map((t) => ({ value: t, label: t })));
+    }).catch((error) => console.error("Erro ao buscar turnos disponíveis", error));
+
+    api.get('/graus-disponiveis').then((res) => {
+      setOpcoesGrau(res.data.map((g) => ({ value: g, label: g })));
+    }).catch((error) => console.error("Erro ao buscar graus disponíveis", error));
+  }, []);
+
   useEffect(() => {
     const path = location.pathname;
     // Se saí da página de cursos e NÃO fui para detalhes, limpa o cache
     if (path !== '/cursos' && !path.includes('/detalhes')) {
-      sessionStorage.removeItem('lastSearch');
-      sessionStorage.removeItem('lastResults');
+      sessionStorage.removeItem('cursos_lastSearch');
+      sessionStorage.removeItem('cursos_lastResults');
     }
   }, [location.pathname]);
 
   const handleSearch = async () => {
-    
-    if (!pesquisa.trim()) return;
+
+    if (!pesquisa.trim()) {
+      avisarBuscaVazia('Digite um curso para pesquisar.');
+      return;
+    }
 
     setLoading(true);
     try {
       const response = await api.get('/pesquisar', {
         params: {
           curso: pesquisa.trim().toUpperCase(),
-          ...(estado && { uf: estado })
+          ...(estado && { uf: estado }),
+          ...(turno && { turno }),
+          ...(grau && { grau }),
         }
       });
 
@@ -106,9 +130,11 @@ export const Cursos = () => {
       const resultadosSomados = Object.values(mapaAgrupado);
 
       setResultados(resultadosSomados);
-      sessionStorage.setItem('lastResults', JSON.stringify(resultadosSomados));
-      sessionStorage.setItem('lastSearch', pesquisa);
-      sessionStorage.setItem('lastEstado', estado);
+      sessionStorage.setItem('cursos_lastResults', JSON.stringify(resultadosSomados));
+      sessionStorage.setItem('cursos_lastSearch', pesquisa);
+      sessionStorage.setItem('cursos_lastEstado', estado);
+      sessionStorage.setItem('cursos_lastTurno', turno);
+      sessionStorage.setItem('cursos_lastGrau', grau);
 
     } catch (error) {
       console.error(error);
@@ -121,9 +147,11 @@ export const Cursos = () => {
     setPesquisa('');
     setResultados([]);
     setSugestoes([]);
-    sessionStorage.removeItem('lastSearch');
-    sessionStorage.removeItem('lastResults');
+    sessionStorage.removeItem('cursos_lastSearch');
+    sessionStorage.removeItem('cursos_lastResults');
   };
+
+  const dadosAgrupados = agruparPorEstado(resultados);
 
   return (
     <Container className={classes.mainContainer} fluid>
@@ -134,82 +162,121 @@ export const Cursos = () => {
         message="Esse recurso só está disponível para usuários da plataforma. Entre ou cadastre-se para favoritar cursos."
       />
 
-      <Group className={classes.Header} mt={20}>
-        <Box>
-          <Text fw={700} size="24px" style={{ lineHeight: 1 }}>Cursos</Text>
-          <Text c="dimmed" size="sm" mt={5}>Acompanhe as notas de corte do curso que você deseja</Text>
-        </Box>
+      <Box className={classes.header} mt={20}>
+        <Text fw={700} size="24px" style={{ lineHeight: 1 }}>Cursos</Text>
+        <Text c="dimmed" size="sm" mt={5}>Acompanhe as notas de corte do curso que você deseja</Text>
+      </Box>
 
-        {/* HEADER DE PESQUISA */}
-        <Group gap={25}>
-          <Autocomplete
-            placeholder="Digite o curso (ex: Medicina)"
-            className={classes.searchInput}
-            size="md"
-            w={700}
-            data={sugestoes}
-            value={pesquisa}
-            onChange={setPesquisa}
-            filter={({ options }) => options}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            
-            // Botão de limpar (X) dentro do input
-            rightSectionPointerEvents="all"
-            rightSection={
-              pesquisa && (
-                <Text 
-                  style={{ cursor: 'pointer', opacity: 0.5 }} 
-                  onClick={handleClear}
-                  size="xs"
-                  fw={700}
-                >
-                  X
-                </Text>
-              )
-            }
-          />
+      {/* HEADER DE PESQUISA */}
+      <Group className={classes.searchBar} gap={25} mt="lg">
+        <Autocomplete
+          placeholder="Digite o curso (ex: Medicina)"
+          className={buscaErro ? classes.buscaErro : classes.searchInput}
+          size="md"
+          w={700}
+          data={sugestoes}
+          value={pesquisa}
+          onChange={setPesquisa}
+          filter={({ options }) => options}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
 
-          <Select
-            size="md"
-            w={220}
-            placeholder="Todos os estados"
-            data={opcoesEstado}
-            value={estado || null}
-            onChange={(value) => setEstado(value || '')}
-            searchable
-            clearable
-          />
+          // Botão de limpar (X) dentro do input
+          rightSectionPointerEvents="all"
+          rightSection={
+            pesquisa && (
+              <Text
+                style={{ cursor: 'pointer', opacity: 0.5 }}
+                onClick={handleClear}
+                size="xs"
+                fw={700}
+              >
+                X
+              </Text>
+            )
+          }
+        />
 
-          <Button
-            className={classes.searchButton}
-            onClick={handleSearch}
-            loading={loading}
-          >Pesquisar</Button>
-          <Button variant="outline" color="gray">Filtros</Button>
-        </Group>
+        <Button
+          className={classes.searchButton}
+          onClick={handleSearch}
+          loading={loading}
+        >Pesquisar</Button>
+      </Group>
 
-        {/* Resultados em Cards */}
+      <Box mt={12}>
+        <Button
+          variant="subtle"
+          size="sm"
+          leftSection={<IconFilter size={16} />}
+          rightSection={filtrosOpened ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+          onClick={toggleFiltros}
+        >
+          Filtros
+        </Button>
+        <Collapse in={filtrosOpened}>
+          <Group mt="sm" gap={25}>
+            <Select
+              size="md"
+              w={220}
+              placeholder="Todos os estados"
+              data={opcoesEstado}
+              value={estado || null}
+              onChange={(value) => setEstado(value || '')}
+              searchable
+              clearable
+            />
+
+            <Select
+              size="md"
+              w={180}
+              placeholder="Todos os turnos"
+              data={opcoesTurno}
+              value={turno || null}
+              onChange={(value) => setTurno(value || '')}
+              clearable
+            />
+
+            <Select
+              size="md"
+              w={200}
+              placeholder="Todos os graus"
+              data={opcoesGrau}
+              value={grau || null}
+              onChange={(value) => setGrau(value || '')}
+              clearable
+            />
+          </Group>
+        </Collapse>
+      </Box>
+
+      {/* Resultados em Cards, agrupados por estado */}
+      <Box mt={30}>
         {loading ? (
           <Center mt={50}><Loader color="blue" /></Center>
+        ) : Object.keys(dadosAgrupados).length > 0 ? (
+          Object.keys(dadosAgrupados).sort().map((sigla) => {
+            const itens = dadosAgrupados[sigla];
+            return (
+              <GrupoEstado key={sigla} sigla={sigla} nomeEstado={estadosMap[sigla]}>
+                <Box className={classes.resultsGrid}>
+                  {itens.map((item) => (
+                    <CardCurso
+                      key={item.id_projeto}
+                      dados={item}
+                      isFavorito={isFavorito(item)}
+                      onToggleFavorito={toggleFavorito}
+                    />
+                  ))}
+                </Box>
+              </GrupoEstado>
+            );
+          })
         ) : (
-          <Box className={classes.resultsGrid}>
-            {resultados.length > 0 ? (
-              resultados.map((item) => (
-                <CardCurso
-                  key={item.id_projeto}
-                  dados={item}
-                  isFavorito={isFavorito(item)}
-                  onToggleFavorito={toggleFavorito}
-                />
-              ))
-            ) : (
-              <Text c="dimmed" ta="center" style={{ gridColumn: '1 / -1' }}>
-                {pesquisa ? 'Nenhum curso encontrado para essa busca.' : 'Pesquise um curso para ver as notas de corte.'}
-              </Text>
-            )}
-          </Box>
+          <Text c="dimmed" ta="center" mt={50}>
+            {pesquisa ? 'Nenhum curso encontrado para essa busca.' : 'Pesquise um curso para ver as notas de corte.'}
+          </Text>
         )}
-      </Group>
+      </Box>
     </Container>
   );
 }

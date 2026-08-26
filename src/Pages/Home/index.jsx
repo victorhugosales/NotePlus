@@ -19,9 +19,8 @@ import {
   IconFilter, IconChevronDown, IconChevronUp,
 } from '@tabler/icons-react';
 import classes from '../Home/home.module.css';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { notifications } from '@mantine/notifications';
 import { CardCurso } from '../../components/Card';
 import { GrupoEstado } from '../../components/GrupoEstado';
 import api from '../../services/api';
@@ -34,6 +33,7 @@ import { NotificacoesButton } from '../../components/NotificacoesButton';
 import { estadosMap, opcoesEstado } from '../../utils/estados';
 import { FiltroCascataModal } from '../../components/FiltroCascataModal';
 import { FiltroCursosModal } from '../../components/FiltroCursosModal';
+import { useAvisoBuscaVazia } from '../../hooks/useAvisoBuscaVazia';
 
 export const Home = () => {
   const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('home_lastSearch') || '');
@@ -43,8 +43,7 @@ export const Home = () => {
   const [sugestoes, setSugestoes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true)
-  const [buscaErro, setBuscaErro] = useState(false);
-  const buscaErroTimeoutRef = useRef(null);
+  const { buscaErro, avisarBuscaVazia } = useAvisoBuscaVazia();
   const location = useLocation();
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
@@ -96,8 +95,6 @@ export const Home = () => {
 
     carregarStats();
   }, []);
-
-  useEffect(() => () => clearTimeout(buscaErroTimeoutRef.current), []);
 
   //Agrupa os resultados por Estado
   const agruparPorEstado = (dados) => {
@@ -187,22 +184,7 @@ export const Home = () => {
   const handleSearch = async (termoManual) => {
     const termoFinal = (typeof termoManual === 'string' ? termoManual : pesquisa).trim();
     if (!termoFinal) {
-      // Clicou em "Pesquisar" sem digitar nada — sem isso o sistema
-      // simplesmente não fazia nada e parecia travado (relato de um
-      // usuário que tentou pesquisar assim). Tremor + aura vermelha no
-      // input + aviso explicando o que fazer.
-      notifications.show({
-        title: 'Campo de busca vazio',
-        message: 'Digite um curso ou instituição superior — ou use nossos filtros personalizados na aba "Filtros".',
-        color: 'yellow',
-      });
-
-      clearTimeout(buscaErroTimeoutRef.current);
-      setBuscaErro(false);
-      // Reforça o "reflow" pra reiniciar a animação CSS mesmo se o usuário
-      // clicar em "Pesquisar" vazio de novo antes do timeout anterior zerar.
-      requestAnimationFrame(() => setBuscaErro(true));
-      buscaErroTimeoutRef.current = setTimeout(() => setBuscaErro(false), 500);
+      avisarBuscaVazia('Digite um curso ou instituição superior — ou use nossos filtros personalizados na aba "Filtros".');
       return;
     }
 
