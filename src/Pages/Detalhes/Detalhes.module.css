@@ -28,7 +28,23 @@
 }
 
 @media (max-width: 768px) {
+    .maincontainer {
+        padding: 0 12px;
+    }
+
     .resultsGrid {
         grid-template-columns: 1fr !important;
+    }
+
+    /* Sem espaço pra manter os controles ao lado do título, cada grupo
+       vira sua própria linha em coluna cheia. */
+    .headerControls {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+
+    .headerControls > * {
+        width: 100% !important;
     }
 }

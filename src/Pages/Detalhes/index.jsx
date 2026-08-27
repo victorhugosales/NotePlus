@@ -312,14 +312,14 @@ export const Detalhes = () => {
 
             {/* Aqui é o HEADER */}
             <Box className={classes.header} mt={30}>
-                <Group justify="space-between" align="flex-start">
+                <Group justify="space-between" align="flex-start" wrap="wrap" className={classes.headerTop}>
                     <Stack gap={0}>
                         <Button onClick={() => navigate(-1)} w={100} mb="md">Voltar</Button>
                         <Text size="xl" fw={700}>{cursoNome || "Carregando..."}</Text>
                         <Text size="md">Veja as notas de corte para cada modalidade.</Text>
                     </Stack>
 
-                    <Group align="flex-end" gap="lg">
+                    <Group align="flex-end" gap="lg" wrap="wrap" className={classes.headerControls}>
                         <SegmentedControl
                             value={visao}
                             onChange={setVisao}

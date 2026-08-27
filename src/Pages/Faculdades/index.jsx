@@ -160,7 +160,8 @@ export const Faculdades = () => {
           placeholder="Digite a faculdade (ex: UFC ou Universidade)"
           className={buscaErro ? classes.buscaErro : classes.searchInput}
           size="md"
-          w={700}
+          flex={1}
+          miw={220}
           data={sugestoes}
           value={pesquisa}
           onChange={(value) => {

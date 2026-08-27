@@ -126,5 +126,11 @@
 
     .formSide {
         padding: 32px 20px;
+        /* Sem o painel decorativo ao lado, o recorte diagonal e a margem
+           negativa (pensados pra encaixar os dois lados) só cortam o
+           próprio formulário — reseta pro layout de coluna única. */
+        clip-path: none;
+        margin-right: 0;
+        flex: 1;
     }
 }

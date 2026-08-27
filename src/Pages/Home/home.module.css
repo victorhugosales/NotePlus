@@ -16,10 +16,10 @@
 }
 
 .dashboard {
+    margin-top: 20px;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    margin-top: 20px;
     gap: 16px;
 }
 
@@ -100,38 +100,14 @@
 /* --- RESPONSIVIDADE (MOBILE E TABLET) --- */
 
 @media (max-width: 768px) {
+    /* Mesmo padding vertical/horizontal de Cursos e Faculdades (20px em
+       cima/baixo, 16px nas laterais — o padrão do Container do Mantine) —
+       sem isso o conteúdo "pula" de lugar ao trocar de aba no mobile. */
     .mainContainer {
-        margin-left: 0 !important; 
-        padding: 10px !important;
+        margin-left: 0 !important;
+        padding: 20px 16px !important;
         width: 100% !important; /* Alterado de 100vw para 100% para evitar scroll lateral */
-        padding-bottom: 90px !important; /* Espaço para a Sidebar inferior não cobrir o conteúdo */
         overflow-x: hidden;
-    }
-
-    /* Header e Dashboard empilhados */
-    .header, .dashboard {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 10px;
-    }
-
-    .btnsHeader {
-        display: flex;
-        flex-direction: row;
-
-        justify-content: space-between;
-    }
-
-
-    .dashboard {
-        width: 20rem;
-        border-radius: 10px;
-    }
-
-    .statCard {
-        width: 100%;
-        min-width: 0;
-        padding: 12px 15px !important;
     }
 
     /* Ajuste da Área de Pesquisa */
@@ -160,9 +136,17 @@
     }
 
     /* Ajuste de textos dentro do card para não quebrarem o layout */
-    div[class*="mantine-Card-root"] text, 
+    div[class*="mantine-Card-root"] text,
     div[class*="mantine-Card-root"] span {
         font-size: 12px !important; /* Diminui um pouco a fonte nos cards */
+    }
+
+    /* Estado e Ano lado a lado dentro dos Filtros — sobrescreve a regra
+       genérica acima (mesma especificidade, mas definida depois, então
+       vence) que empilharia qualquer Group com input dentro. */
+    div[class*="mantine-Group-root"].filtrosEstadoAno {
+        flex-direction: row !important;
+        align-items: stretch !important;
     }
 
 }

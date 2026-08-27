@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Button, Modal, Stack, Text, Group, Box, Indicator, Loader, Center } from '@mantine/core';
+import { ActionIcon, Button, Modal, Stack, Text, Group, Box, Indicator, Loader, Center, Tooltip } from '@mantine/core';
 import { IconBell } from '@tabler/icons-react';
 import api from '../../services/api';
 import { getToken } from '../../utils/authStorage';
@@ -24,7 +24,7 @@ const CACHE_KEY = 'cache_notificacoes';
 // Começa com o último valor visto (sessionStorage): o botão fica em várias
 // telas e remonta a cada navegação, sem isso o selo de não lidas sumia e
 // reaparecia toda vez que a página recarregava.
-export const NotificacoesButton = ({ onNaoAutenticado, className }) => {
+export const NotificacoesButton = ({ onNaoAutenticado, className, iconOnly = false }) => {
     const [opened, setOpened] = useState(false);
     const [notificacoes, setNotificacoes] = useState(() => {
         const cache = sessionStorage.getItem(CACHE_KEY);
@@ -112,11 +112,21 @@ export const NotificacoesButton = ({ onNaoAutenticado, className }) => {
                 )}
             </Modal>
 
-            <Indicator disabled={naoLidas === 0} label={naoLidas} size={16} color="red" offset={4}>
-                <Button className={className} variant="outline" leftSection={<IconBell size={16} />} onClick={handleAbrir}>
-                    Notificações
-                </Button>
-            </Indicator>
+            {iconOnly ? (
+                <Tooltip label="Notificações" withArrow>
+                    <Indicator disabled={naoLidas === 0} label={naoLidas} size={16} color="red" offset={4}>
+                        <ActionIcon className={className} variant="outline" color="gray" size="lg" onClick={handleAbrir} aria-label="Notificações">
+                            <IconBell size={18} />
+                        </ActionIcon>
+                    </Indicator>
+                </Tooltip>
+            ) : (
+                <Indicator disabled={naoLidas === 0} label={naoLidas} size={16} color="red" offset={4}>
+                    <Button className={className} variant="outline" leftSection={<IconBell size={16} />} onClick={handleAbrir}>
+                        Notificações
+                    </Button>
+                </Indicator>
+            )}
         </>
     );
 };

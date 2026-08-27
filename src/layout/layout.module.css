@@ -22,5 +22,9 @@
   .content {
     margin-left: 0 !important;
     padding-right: 0 !important;
+    /* Reserva espaço pra barra de navegação inferior (fixed, 70px) não
+       cobrir o final do conteúdo — garantido aqui pra toda página, mesmo
+       as que não têm esse ajuste no próprio CSS. */
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
   }
 }

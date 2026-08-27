@@ -12,6 +12,7 @@ import {
 import { IconHome, IconBook, IconSchool, IconLogout, IconUser, IconChevronLeft, IconChevronRight, IconUpload } from '@tabler/icons-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useMediaQuery } from '@mantine/hooks';
 import classes from './Sidebar.module.css';
 import { tocarClique } from '../../utils/sons';
 import { getToken, getUsuario, limparSessao } from '../../utils/authStorage';
@@ -30,6 +31,11 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  // No mobile a sidebar vira barra inferior só com ícones — trata como
+  // "sempre retraída" ali, independente do collapsed do desktop (que é
+  // outro estado, persistido no localStorage e não deve valer aqui).
+  const isMobile = useMediaQuery('(max-width: 768px)');
+  const collapsedVisual = isMobile ? true : collapsed;
 
   useEffect(() => {
     const token = getToken();
@@ -67,27 +73,27 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
       <Card className={classes.sidebarCard} h={'100vh'} shadow="sm" radius={0} withBorder>
         <Stack className={classes.stackContainer} justify="flex-start" p="12px" h="100%">
 
-          <Group className={classes.topBar} justify={collapsed ? 'center' : 'space-between'} wrap="nowrap">
-            {!collapsed && <Text className={classes.logo}>NotePlus+</Text>}
+          <Group className={classes.topBar} justify={collapsedVisual ? 'center' : 'space-between'} wrap="nowrap">
+            {!collapsedVisual && <Text className={classes.logo}>NotePlus+</Text>}
             <ActionIcon
               variant="subtle"
               color="gray.4"
               onClick={() => { tocarClique(); onToggleCollapse(); }}
-              aria-label={collapsed ? 'Expandir menu' : 'Retrair menu'}
-              title={collapsed ? 'Expandir menu' : 'Retrair menu'}
+              aria-label={collapsedVisual ? 'Expandir menu' : 'Retrair menu'}
+              title={collapsedVisual ? 'Expandir menu' : 'Retrair menu'}
             >
-              {collapsed ? <IconChevronRight size={18} /> : <IconChevronLeft size={18} />}
+              {collapsedVisual ? <IconChevronRight size={18} /> : <IconChevronLeft size={18} />}
             </ActionIcon>
           </Group>
 
           {/* LINKS - Virarão linha no mobile */}
           <Stack className={classes.linksStack} gap="sm">
             {links.map((item) => (
-              <Tooltip key={item.to} label={item.label} position="right" disabled={!collapsed} withinPortal>
+              <Tooltip key={item.to} label={item.label} position="right" disabled={!collapsedVisual} withinPortal>
                 <Anchor component={NavLink} to={item.to} className={classes.link} underline="never">
-                  <Group gap="xs" className={classes.linkGroup} justify={collapsed ? 'center' : 'flex-start'} wrap="nowrap">
+                  <Group gap="xs" className={classes.linkGroup} justify={collapsedVisual ? 'center' : 'flex-start'} wrap="nowrap">
                     <item.icon size={22} stroke={1.5} />
-                    {!collapsed && <Text size="sm">{item.label}</Text>}
+                    {!collapsedVisual && <Text size="sm">{item.label}</Text>}
                   </Group>
                 </Anchor>
               </Tooltip>
@@ -95,8 +101,8 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
           </Stack>
 
           {isLoggedIn ? (
-            <Stack mt="auto" gap="sm">
-              <Tooltip label="Sair" position="right" disabled={!collapsed} withinPortal>
+            <Stack mt="auto" gap="sm" className={classes.logoutStack}>
+              <Tooltip label="Sair" position="right" disabled={!collapsedVisual} withinPortal>
                 <Button
                   fullWidth
                   variant="light"
@@ -104,16 +110,16 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
                   radius="md"
                   size="sm"
                   className={classes.logoutBtn}
-                  px={collapsed ? 0 : undefined}
-                  leftSection={!collapsed ? <IconLogout size={18} stroke={1.5} /> : undefined}
+                  px={collapsedVisual ? 0 : undefined}
+                  leftSection={!collapsedVisual ? <IconLogout size={18} stroke={1.5} /> : undefined}
                   onClick={handleLogout}
                 >
-                  {collapsed ? <IconLogout size={18} stroke={1.5} /> : 'Sair'}
+                  {collapsedVisual ? <IconLogout size={18} stroke={1.5} /> : 'Sair'}
                 </Button>
               </Tooltip>
             </Stack>
           ) : (
-            !collapsed && (
+            !collapsedVisual && (
               /* PROPAGANDA - Sumirá no mobile via CSS */
               <Stack mt="auto" className={classes.propaganda} gap="md">
                 <Text size="md" fw={700} ta="center" className={classes.propagandaTitle}>

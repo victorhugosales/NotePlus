@@ -12,6 +12,8 @@ import {
   Center,
   Modal,
   Collapse,
+  ActionIcon,
+  Tooltip,
   useMantineColorScheme
 } from '@mantine/core';
 import {
@@ -24,7 +26,7 @@ import { useLocation } from 'react-router-dom';
 import { CardCurso } from '../../components/Card';
 import { GrupoEstado } from '../../components/GrupoEstado';
 import api from '../../services/api';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { useFavoritos } from '../../hooks/useFavoritos';
 import { useAnosDisponiveis } from '../../hooks/useAnosDisponiveis';
 import { getToken, getUsuario } from '../../utils/authStorage';
@@ -47,6 +49,10 @@ export const Home = () => {
   const location = useLocation();
 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  // Ícones em vez de botões com texto e o dashboard retrátil são coisa só
+  // do mobile — no desktop o header e o painel de estatísticas continuam
+  // exatamente como sempre foram.
+  const isMobile = useMediaQuery('(max-width: 768px)');
   const [loginModalOpened, { open: openLoginModal, close: closeLoginModal }] = useDisclosure(false);
   const [favoritosModalOpened, { open: openFavoritosModal, close: closeFavoritosModal }] = useDisclosure(false);
   const [filtrosOpened, { toggle: toggleFiltros }] = useDisclosure(false);
@@ -316,78 +322,114 @@ export const Home = () => {
         onSelecionar={handleSelecionarCurso}
       />
 
-      <Box className={classes.header} justify='space-between' display='flex' align='center' mt={20}>
-        <Group gap="xs">
-          <Text className={classes.logo} fw={700}>Visão Geral</Text>
-          {loadingStats && <Loader size="xs" color="brand" />}
-        </Group>
-        <Group className={classes.btnsHeader}>
-          <Button
-            className={classes.headerButton}
-            variant="outline"
-            leftSection={<IconPalette size={16} />}
-            onClick={handleMudarTema}
-          >
-            Mudar Tema
-          </Button>
-          <Button
-            className={classes.headerButton}
-            variant="outline"
-            leftSection={<IconStar size={16} />}
-            onClick={handleAbrirFavoritados}
-          >
-            Favoritados
-          </Button>
-          <NotificacoesButton onNaoAutenticado={openLoginModal} className={classes.headerButton} />
-        </Group>
-      </Box>
-
-      <Paper className={classes.dashboard} shadow="sm" p="md">
-        <Box className={`${classes.statCard} ${classes.statCardBlue}`}>
-          <Box className={`${classes.statIconBadge} ${classes.statIconBadgeBlue}`}>
-            <IconBook2 size={22} stroke={1.5} />
-          </Box>
-          <Box>
-            <Text className={classes.statNumber}>{stats.totalCursos}</Text>
-            <Text className={classes.statLabel}>Cursos Disponíveis</Text>
-          </Box>
+      {/* "Visão Geral" + ícones ficam só no desktop — no mobile os ícones
+          se juntam à linha do título "Pesquisa Geral" logo abaixo. */}
+      {!isMobile && (
+        <Box className={classes.header} display='flex' mt={20}>
+          <Group gap="xs">
+            <Text className={classes.logo} fw={700}>Visão Geral</Text>
+            {loadingStats && <Loader size="xs" color="brand" />}
+          </Group>
+          <Group className={classes.btnsHeader} gap="xs">
+            <Button
+              className={classes.headerButton}
+              variant="outline"
+              leftSection={<IconPalette size={16} />}
+              onClick={handleMudarTema}
+            >
+              Mudar Tema
+            </Button>
+            <Button
+              className={classes.headerButton}
+              variant="outline"
+              leftSection={<IconStar size={16} />}
+              onClick={handleAbrirFavoritados}
+            >
+              Favoritados
+            </Button>
+            <NotificacoesButton onNaoAutenticado={openLoginModal} className={classes.headerButton} />
+          </Group>
         </Box>
+      )}
 
-        <Box className={`${classes.statCard} ${classes.statCardGreen}`}>
-          <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGreen}`}>
-            <IconChartBar size={22} stroke={1.5} />
+      {/* Painel de estatísticas: só no desktop — no mobile ele ocupava
+          espaço logo na abertura do app sem ser o foco principal (a busca
+          é), então fica oculto ali. */}
+      {!isMobile && (
+        <Paper className={classes.dashboard} shadow="sm" p="md">
+          <Box className={`${classes.statCard} ${classes.statCardBlue}`}>
+            <Box className={`${classes.statIconBadge} ${classes.statIconBadgeBlue}`}>
+              <IconBook2 size={22} stroke={1.5} />
+            </Box>
+            <Box>
+              <Text className={classes.statNumber}>{stats.totalCursos}</Text>
+              <Text className={classes.statLabel}>Cursos Disponíveis</Text>
+            </Box>
           </Box>
-          <Box>
-            <Text className={classes.statNumber}>{stats.mediaCursos}</Text>
-            <Text className={classes.statLabel}>Cursos por Faculdade</Text>
-          </Box>
-        </Box>
 
-        <Box className={`${classes.statCard} ${classes.statCardPurple}`}>
-          <Box className={`${classes.statIconBadge} ${classes.statIconBadgePurple}`}>
-            <IconBuildingBank size={22} stroke={1.5} />
+          <Box className={`${classes.statCard} ${classes.statCardGreen}`}>
+            <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGreen}`}>
+              <IconChartBar size={22} stroke={1.5} />
+            </Box>
+            <Box>
+              <Text className={classes.statNumber}>{stats.mediaCursos}</Text>
+              <Text className={classes.statLabel}>Cursos por Faculdade</Text>
+            </Box>
           </Box>
-          <Box>
-            <Text className={classes.statNumber}>{stats.totalFaculdades}</Text>
-            <Text className={classes.statLabel}>Faculdades Públicas</Text>
-          </Box>
-        </Box>
 
-        <Box className={`${classes.statCard} ${classes.statCardGold}`}>
-          <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGold}`}>
-            <IconMapPin size={22} stroke={1.5} />
+          <Box className={`${classes.statCard} ${classes.statCardPurple}`}>
+            <Box className={`${classes.statIconBadge} ${classes.statIconBadgePurple}`}>
+              <IconBuildingBank size={22} stroke={1.5} />
+            </Box>
+            <Box>
+              <Text className={classes.statNumber}>{stats.totalFaculdades}</Text>
+              <Text className={classes.statLabel}>Faculdades Públicas</Text>
+            </Box>
           </Box>
-          <Box>
-            <Text className={classes.statNumber}>{stats.totalEstados}</Text>
-            <Text className={classes.statLabel}>Estados Cadastrados</Text>
-          </Box>
-        </Box>
-      </Paper>
 
-      {/* SEARCHINPUT */}
+          <Box className={`${classes.statCard} ${classes.statCardGold}`}>
+            <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGold}`}>
+              <IconMapPin size={22} stroke={1.5} />
+            </Box>
+            <Box>
+              <Text className={classes.statNumber}>{stats.totalEstados}</Text>
+              <Text className={classes.statLabel}>Estados Cadastrados</Text>
+            </Box>
+          </Box>
+        </Paper>
+      )}
+
+      {/* SEARCHINPUT — no mobile segue o mesmo padrão texto → busca →
+          filtros de Cursos/Faculdades (título à esquerda, bold, 24px, com
+          subtítulo), e os ícones de tema/favoritos/notificações se juntam
+          à linha do título em vez de ficarem soltos lá em cima. */}
       <Box mt={20}>
-        <Text mb={20} align="center" size='xl' fw={500}>Pesquisa Geral</Text>
-        <Group justify='space-between'>
+        {isMobile ? (
+          <>
+            <Group justify="space-between" align="center" wrap="nowrap">
+              <Text fw={700} size="24px" style={{ lineHeight: 1 }}>Pesquisa Geral</Text>
+              <Group gap="xs" wrap="nowrap">
+                <Tooltip label="Mudar tema" withArrow>
+                  <ActionIcon variant="outline" color="gray" size="lg" onClick={handleMudarTema} aria-label="Mudar tema">
+                    <IconPalette size={18} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Favoritados" withArrow>
+                  <ActionIcon variant="outline" color="gray" size="lg" onClick={handleAbrirFavoritados} aria-label="Favoritados">
+                    <IconStar size={18} />
+                  </ActionIcon>
+                </Tooltip>
+                <NotificacoesButton onNaoAutenticado={openLoginModal} iconOnly />
+              </Group>
+            </Group>
+            <Text c="dimmed" size="sm" mt={5}>
+              Pesquise cursos e faculdades pela nota de corte do SISU.
+            </Text>
+          </>
+        ) : (
+          <Text mb={20} ta="center" size='xl' fw={500}>Pesquisa Geral</Text>
+        )}
+        <Group justify='space-between' mt={isMobile ? 'lg' : undefined}>
           <Autocomplete
             className={buscaErro ? classes.buscaErro : undefined}
             size='md'
@@ -414,24 +456,28 @@ export const Home = () => {
               )
             }
           />
-          <Select
-            size='md'
-            w={220}
-            placeholder="Todos os estados"
-            data={opcoesEstado}
-            value={estado || null}
-            onChange={(value) => setEstado(value || '')}
-            searchable
-            clearable
-          />
-          <Select
-            size='md'
-            w={140}
-            data={opcoesAno}
-            value={ano}
-            onChange={(value) => setAno(value || opcoesAno[0]?.value || '')}
-            allowDeselect={false}
-          />
+          {!isMobile && (
+            <>
+              <Select
+                size='md'
+                w={220}
+                placeholder="Todos os estados"
+                data={opcoesEstado}
+                value={estado || null}
+                onChange={(value) => setEstado(value || '')}
+                searchable
+                clearable
+              />
+              <Select
+                size='md'
+                w={140}
+                data={opcoesAno}
+                value={ano}
+                onChange={(value) => setAno(value || opcoesAno[0]?.value || '')}
+                allowDeselect={false}
+              />
+            </>
+          )}
           <Button size="md" onClick={() => handleSearch()}>Pesquisar</Button>
         </Group>
 
@@ -446,6 +492,29 @@ export const Home = () => {
             Filtros
           </Button>
           <Collapse in={filtrosOpened}>
+            {isMobile && (
+              // Estado e Ano são escolha única (não uma lista pra abrir
+              // modal como Municípios/Instituições/Cursos), então ficam
+              // lado a lado aqui dentro dos Filtros no mobile.
+              <Group mt="sm" grow className={classes.filtrosEstadoAno}>
+                <Select
+                  size='md'
+                  placeholder="Todos os estados"
+                  data={opcoesEstado}
+                  value={estado || null}
+                  onChange={(value) => setEstado(value || '')}
+                  searchable
+                  clearable
+                />
+                <Select
+                  size='md'
+                  data={opcoesAno}
+                  value={ano}
+                  onChange={(value) => setAno(value || opcoesAno[0]?.value || '')}
+                  allowDeselect={false}
+                />
+              </Group>
+            )}
             <Group mt="sm">
               <Button variant="outline" leftSection={<IconMapPin size={16} />} onClick={openMunicipioModal}>
                 Municípios

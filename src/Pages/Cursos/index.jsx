@@ -173,7 +173,8 @@ export const Cursos = () => {
           placeholder="Digite o curso (ex: Medicina)"
           className={buscaErro ? classes.buscaErro : classes.searchInput}
           size="md"
-          w={700}
+          flex={1}
+          miw={220}
           data={sugestoes}
           value={pesquisa}
           onChange={setPesquisa}
