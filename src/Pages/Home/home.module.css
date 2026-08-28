@@ -101,20 +101,31 @@
    Home (antes de qualquer busca), some assim que há uma pesquisa. */
 .categoryGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
 }
 
 .categoryCard {
     display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 16px 18px;
+    gap: 16px;
+    padding: 22px 24px;
     border: 1px solid #e9ecef;
-    border-radius: 10px;
+    border-radius: 12px;
     width: 100%;
+    min-height: 96px;
     text-align: left;
     transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.categoryCard .categoryIconBadge {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+}
+
+.categoryCard .categoryLabel {
+    font-size: 17px;
 }
 
 .categoryCard:hover {

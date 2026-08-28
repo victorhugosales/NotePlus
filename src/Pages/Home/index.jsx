@@ -15,6 +15,7 @@ import {
   ActionIcon,
   Tooltip,
   UnstyledButton,
+  CloseButton,
   useMantineColorScheme
 } from '@mantine/core';
 import {
@@ -94,11 +95,14 @@ export const Home = () => {
 
   //Carrega os dados da DashBoard (sempre busca de novo em segundo plano
   //pra manter atualizado, mas a tela já mostra o último valor conhecido
-  //enquanto isso acontece).
+  //enquanto isso acontece). Restrito à edição atual do SISU (`ano`) — sem
+  //isso, os números somavam todas as edições importadas juntas.
   useEffect(() => {
+    if (!ano) return;
+
     const carregarStats = async () => {
       try {
-        const response = await api.get('/stats');
+        const response = await api.get('/stats', { params: { ano } });
         setStats(response.data);
         sessionStorage.setItem('home_lastStats', JSON.stringify(response.data));
       } catch (error) {
@@ -109,7 +113,7 @@ export const Home = () => {
     };
 
     carregarStats();
-  }, []);
+  }, [ano]);
 
   //Agrupa os resultados por Estado
   const agruparPorEstado = (dados) => {
@@ -370,12 +374,12 @@ export const Home = () => {
         onSelecionar={handleSelecionarCurso}
       />
 
-      {/* "Visão Geral" + ícones ficam só no desktop — no mobile os ícones
+      {/* "Dashboard" + ícones ficam só no desktop — no mobile os ícones
           se juntam à linha do título "Pesquisa Geral" logo abaixo. */}
       {!isMobile && (
         <Box className={classes.header} display='flex' mt={20}>
           <Group gap="xs">
-            <Text className={classes.logo} fw={700}>Visão Geral</Text>
+            <Text className={classes.logo} fw={700}>Dashboard</Text>
             {loadingStats && <Loader size="xs" color="brand" />}
           </Group>
           <Group className={classes.btnsHeader} gap="xs">
@@ -493,14 +497,11 @@ export const Home = () => {
             rightSectionPointerEvents="all"
             rightSection={
               pesquisa && (
-                <Text
-                  style={{ cursor: 'pointer', opacity: 0.5 }}
+                <CloseButton
                   onClick={handleClear}
-                  size="xs"
-                  fw={700}
-                >
-                  X
-                </Text>
+                  aria-label="Limpar pesquisa"
+                  title="Limpar pesquisa"
+                />
               )
             }
           />
@@ -540,22 +541,22 @@ export const Home = () => {
             <Text c="dimmed" size="sm" mb="md">Escolha uma opção para visualizar as notas de corte</Text>
             <Box className={classes.categoryGrid}>
               <UnstyledButton className={classes.categoryCard} onClick={openCursoModal}>
-                <Box className={`${classes.statIconBadge} ${classes.statIconBadgeBlue}`}>
-                  <IconBook2 size={22} stroke={1.5} />
+                <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeBlue}`}>
+                  <IconBook2 size={26} stroke={1.5} />
                 </Box>
-                <Text fw={600}>Por Curso</Text>
+                <Text fw={600} className={classes.categoryLabel}>Por Curso</Text>
               </UnstyledButton>
               <UnstyledButton className={classes.categoryCard} onClick={openInstituicaoModal}>
-                <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGreen}`}>
-                  <IconBuildingBank size={22} stroke={1.5} />
+                <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeGreen}`}>
+                  <IconBuildingBank size={26} stroke={1.5} />
                 </Box>
-                <Text fw={600}>Por Faculdade</Text>
+                <Text fw={600} className={classes.categoryLabel}>Por Faculdade</Text>
               </UnstyledButton>
               <UnstyledButton className={classes.categoryCard} onClick={openMunicipioModal}>
-                <Box className={`${classes.statIconBadge} ${classes.statIconBadgePurple}`}>
-                  <IconMapPin size={22} stroke={1.5} />
+                <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgePurple}`}>
+                  <IconMapPin size={26} stroke={1.5} />
                 </Box>
-                <Text fw={600}>Por Município</Text>
+                <Text fw={600} className={classes.categoryLabel}>Por Município</Text>
               </UnstyledButton>
 
               {/* Rankings prontos (sem modal, sem termo de busca) — só no
@@ -564,28 +565,28 @@ export const Home = () => {
               {!isMobile && (
                 <>
                   <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('mais-procurados', 'Mais Procurados')}>
-                    <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGold}`}>
-                      <IconFlame size={22} stroke={1.5} />
+                    <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeGold}`}>
+                      <IconFlame size={26} stroke={1.5} />
                     </Box>
-                    <Text fw={600}>Mais Procurados</Text>
+                    <Text fw={600} className={classes.categoryLabel}>Mais Procurados</Text>
                   </UnstyledButton>
                   <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('maiores-notas', 'Maiores Notas de Corte')}>
-                    <Box className={`${classes.statIconBadge} ${classes.statIconBadgeBlue}`}>
-                      <IconTrophy size={22} stroke={1.5} />
+                    <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeBlue}`}>
+                      <IconTrophy size={26} stroke={1.5} />
                     </Box>
-                    <Text fw={600}>Maiores Notas de Corte</Text>
+                    <Text fw={600} className={classes.categoryLabel}>Maiores Notas de Corte</Text>
                   </UnstyledButton>
                   <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('mais-ofertados', 'Mais Ofertados')}>
-                    <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGreen}`}>
-                      <IconArmchair size={22} stroke={1.5} />
+                    <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeGreen}`}>
+                      <IconArmchair size={26} stroke={1.5} />
                     </Box>
-                    <Text fw={600}>Mais Ofertados</Text>
+                    <Text fw={600} className={classes.categoryLabel}>Mais Ofertados</Text>
                   </UnstyledButton>
                   <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('menores-notas', 'Mais Possibilidades')}>
-                    <Box className={`${classes.statIconBadge} ${classes.statIconBadgePurple}`}>
-                      <IconDoorEnter size={22} stroke={1.5} />
+                    <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgePurple}`}>
+                      <IconDoorEnter size={26} stroke={1.5} />
                     </Box>
-                    <Text fw={600}>Mais Possibilidades</Text>
+                    <Text fw={600} className={classes.categoryLabel}>Mais Possibilidades</Text>
                   </UnstyledButton>
                 </>
               )}
