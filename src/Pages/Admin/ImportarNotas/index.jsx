@@ -12,13 +12,15 @@ import {
   Badge,
   Checkbox,
   Divider,
+  Loader,
 } from '@mantine/core';
-import { IconUpload, IconAlertTriangle, IconCheck } from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconUpload, IconAlertTriangle, IconCheck, IconX } from '@tabler/icons-react';
+import { useState, useEffect, useRef } from 'react';
 import { notifications } from '@mantine/notifications';
 import api from '../../../services/api';
 
 const anoAtual = new Date().getFullYear();
+const INTERVALO_POLLING_MS = 3000;
 
 export const ImportarNotas = () => {
   const [arquivo, setArquivo] = useState(null);
@@ -28,6 +30,52 @@ export const ImportarNotas = () => {
   const [relatorio, setRelatorio] = useState(null);
   const [substituir, setSubstituir] = useState(false);
   const [resultado, setResultado] = useState(null);
+  // Importação roda em background no servidor — depois do POST, fica só
+  // consultando GET /admin/importacoes/:id até sair de "processando".
+  const [importacaoEmAndamento, setImportacaoEmAndamento] = useState(null);
+  const [erroImportacao, setErroImportacao] = useState(null);
+  const pollingRef = useRef(null);
+
+  useEffect(() => {
+    return () => clearInterval(pollingRef.current);
+  }, []);
+
+  const acompanharImportacao = (id) => {
+    pollingRef.current = setInterval(async () => {
+      try {
+        const response = await api.get(`/admin/importacoes/${id}`);
+        const registro = response.data;
+
+        if (registro.status === 'processando') return;
+
+        clearInterval(pollingRef.current);
+        setImportacaoEmAndamento(null);
+
+        if (registro.status === 'concluido') {
+          setResultado({
+            totalImportadas: registro.linhas_importadas,
+            totalComErro: registro.linhas_com_erro,
+          });
+          notifications.show({
+            title: 'Importação concluída',
+            message: `${registro.linhas_importadas} linhas importadas para o ano ${registro.ano}.`,
+            color: 'green',
+          });
+        } else {
+          setErroImportacao(registro.mensagem_erro || 'Erro desconhecido ao importar.');
+          notifications.show({
+            title: 'Importação falhou',
+            message: registro.mensagem_erro || 'Erro desconhecido ao importar.',
+            color: 'red',
+          });
+        }
+      } catch (error) {
+        // Erro de rede pontual no polling não é motivo pra desistir — só
+        // tenta de novo no próximo intervalo.
+        console.error('Erro ao consultar status da importação', error);
+      }
+    }, INTERVALO_POLLING_MS);
+  };
 
   const handleAnalisar = async () => {
     if (!arquivo || !ano) {
@@ -58,16 +106,21 @@ export const ImportarNotas = () => {
     if (!arquivo || !relatorio) return;
 
     setConfirmando(true);
+    setResultado(null);
+    setErroImportacao(null);
     try {
       const formData = new FormData();
       formData.append('arquivo', arquivo);
       formData.append('ano', ano);
       formData.append('substituir', substituir);
 
+      // O servidor responde assim que cria o registro (202) — os inserts em
+      // lote continuam rodando em background lá. Daqui pra frente é só
+      // polling até o status sair de "processando".
       const response = await api.post('/admin/importacoes/confirmar', formData);
-      setResultado(response.data);
+      setImportacaoEmAndamento(response.data);
       setRelatorio(null);
-      notifications.show({ title: 'Importação concluída', message: response.data.message, color: 'green' });
+      acompanharImportacao(response.data.id);
     } catch (error) {
       const mensagem = error.response?.data?.error || 'Erro ao confirmar a importação.';
       notifications.show({ title: 'Não foi possível importar', message: mensagem, color: 'red' });
@@ -176,10 +229,24 @@ export const ImportarNotas = () => {
         </Card>
       )}
 
+      {importacaoEmAndamento && (
+        <Alert icon={<Loader size={16} />} color="blue" title="Importando em segundo plano">
+          {importacaoEmAndamento.totalImportadas} linhas de {importacaoEmAndamento.totalLinhas} estão sendo gravadas
+          para o ano {ano}. Isso pode levar alguns minutos numa planilha grande — pode deixar essa aba aberta
+          e acompanhar por aqui, o andamento é salvo no servidor mesmo se você sair da página.
+        </Alert>
+      )}
+
       {resultado && (
         <Alert icon={<IconCheck size={18} />} color="green" title="Importação concluída">
           {resultado.totalImportadas} linhas importadas para o ano {ano}
           {resultado.totalComErro > 0 && ` (${resultado.totalComErro} linhas ignoradas por erro de validação)`}.
+        </Alert>
+      )}
+
+      {erroImportacao && (
+        <Alert icon={<IconX size={18} />} color="red" title="Importação falhou">
+          {erroImportacao}
         </Alert>
       )}
     </Stack>
