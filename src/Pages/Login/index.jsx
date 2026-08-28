@@ -6,13 +6,12 @@ import {
   Anchor,
   Checkbox,
   Divider,
-  Box,
   Center,
 } from '@mantine/core';
 import { IconArrowRight } from '@tabler/icons-react';
-import { GoogleLogin } from '@react-oauth/google';
 import { AuthLayout } from '../../components/AuthLayout';
 import { AuthTabs } from '../../components/AuthTabs';
+import { GoogleAuthButton } from '../../components/GoogleAuthButton';
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react'
 import { notifications } from '@mantine/notifications';
@@ -132,21 +131,15 @@ export const Login = () => {
       <Divider label="ou continue com" labelPosition="center" my="lg" />
 
       <Center>
-        <Box style={{ width: '100%', maxWidth: 380 }}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => notifications.show({
-              title: 'Não foi possível entrar',
-              message: 'Erro ao entrar com o Google.',
-              color: 'red',
-            })}
-            theme="outline"
-            size="large"
-            shape="pill"
-            text="signin_with"
-            width="380"
-          />
-        </Box>
+        <GoogleAuthButton
+          text="signin_with"
+          onSuccess={handleGoogleSuccess}
+          onError={() => notifications.show({
+            title: 'Não foi possível entrar',
+            message: 'Erro ao entrar com o Google.',
+            color: 'red',
+          })}
+        />
       </Center>
     </AuthLayout>
   );

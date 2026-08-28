@@ -2,15 +2,13 @@ import {
   Button,
   PasswordInput,
   TextInput,
-  Text,
   Divider,
-  Box,
   Center,
 } from '@mantine/core';
 import { IconArrowRight } from '@tabler/icons-react';
-import { GoogleLogin } from '@react-oauth/google';
 import { AuthLayout } from '../../components/AuthLayout';
 import { AuthTabs } from '../../components/AuthTabs';
+import { GoogleAuthButton } from '../../components/GoogleAuthButton';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
@@ -148,21 +146,15 @@ export const Cadastro = () => {
       <Divider label="ou continue com" labelPosition="center" my="lg" />
 
       <Center>
-        <Box style={{ width: '100%', maxWidth: 380 }}>
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => notifications.show({
-              title: 'Não foi possível criar a conta',
-              message: 'Erro ao continuar com o Google.',
-              color: 'red',
-            })}
-            theme="outline"
-            size="large"
-            shape="pill"
-            text="signup_with"
-            width="380"
-          />
-        </Box>
+        <GoogleAuthButton
+          text="signup_with"
+          onSuccess={handleGoogleSuccess}
+          onError={() => notifications.show({
+            title: 'Não foi possível criar a conta',
+            message: 'Erro ao continuar com o Google.',
+            color: 'red',
+          })}
+        />
       </Center>
     </AuthLayout>
   );
