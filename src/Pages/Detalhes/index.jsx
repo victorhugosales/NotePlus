@@ -337,15 +337,6 @@ export const Detalhes = () => {
                             color="orange"
                             size="md"
                         />
-
-                        {/* O SELECT DE ANO */}
-                        <NativeSelect w={150}
-                            label="Edição do SISU"
-                            description="Selecione o ano base"
-                            value={ano}
-                            onChange={(event) => setAno(event.currentTarget.value)}
-                            data={opcoesAno}
-                        />
                     </Group>
                 </Group>
             </Box>
@@ -364,7 +355,15 @@ export const Detalhes = () => {
 
             {visao === 'simplificada' ? (
                 <Box mt={20}>
-                    <Text size='xl' mb="md" fw={500}>Notas de Corte por Modalidade - SISU {ano}</Text>
+                    <Group gap="xs" mb="md" align="center">
+                        <Text size='xl' fw={500}>Notas de Corte por Modalidade - SISU</Text>
+                        <NativeSelect
+                            w={110}
+                            value={ano}
+                            onChange={(event) => setAno(event.currentTarget.value)}
+                            data={opcoesAno}
+                        />
+                    </Group>
 
                     {/* Guia rápido das cores da Análise Inteligente */}
                     {analiseAtiva && (

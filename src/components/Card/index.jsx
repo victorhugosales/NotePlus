@@ -64,10 +64,22 @@ export const CardCurso = ({ dados, isFavorito, onToggleFavorito }) => {
                     {dados.grau}{dados.turno ? ` · ${dados.turno}` : ''}
                 </Text>
 
-                <Box className={classes.vagasBox}>
-                    <Text className={classes.vagasLabel}>Vagas</Text>
-                    <Text className={classes.vagasNumero}>{dados.vagas ?? '—'}</Text>
-                </Box>
+                <Group className={classes.vagasBox} justify="space-between" wrap="nowrap">
+                    <Box>
+                        <Text className={classes.vagasLabel}>Vagas</Text>
+                        <Text className={classes.vagasNumero}>{dados.vagas ?? '—'}</Text>
+                    </Box>
+
+                    {/* nota_corte só vem preenchido nos cards de "Destaque"
+                        (Maiores/Menores Notas, Mais Ofertados, Mais
+                        Procurados) — nos demais o dado nem é buscado. */}
+                    {dados.nota_corte > 0 && (
+                        <Box ta="right">
+                            <Text className={classes.vagasLabel}>Nota de corte</Text>
+                            <Text className={classes.vagasNumero}>{Number(dados.nota_corte).toFixed(2)}</Text>
+                        </Box>
+                    )}
+                </Group>
 
                 <Anchor
                     component={NavLink}

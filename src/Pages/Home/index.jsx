@@ -14,11 +14,13 @@ import {
   Collapse,
   ActionIcon,
   Tooltip,
+  UnstyledButton,
   useMantineColorScheme
 } from '@mantine/core';
 import {
   IconBook2, IconChartBar, IconBuildingBank, IconMapPin, IconPalette, IconStar,
   IconFilter, IconChevronDown, IconChevronUp,
+  IconFlame, IconTrophy, IconArmchair, IconDoorEnter,
 } from '@tabler/icons-react';
 import classes from '../Home/home.module.css';
 import { useState, useEffect } from 'react';
@@ -39,6 +41,13 @@ import { useAvisoBuscaVazia } from '../../hooks/useAvisoBuscaVazia';
 
 export const Home = () => {
   const [pesquisa, setPesquisa] = useState(sessionStorage.getItem('home_lastSearch') || '');
+  // Guarda qual filtro em cascata (Municípios/Instituições) preencheu o
+  // texto da busca, e com quê. Município/instituição usam parâmetros
+  // diferentes (cidade/universidade) do que o botão "Pesquisar" (curso) —
+  // sem isso, reaproveitar o texto que apareceu no input pra buscar de
+  // novo tentava buscar o nome do município como se fosse curso e não
+  // achava nada. Some assim que o usuário edita o texto manualmente.
+  const [filtroAtivo, setFiltroAtivo] = useState(null);
   const [estado, setEstado] = useState(sessionStorage.getItem('home_lastEstado') || '');
   const [ano, setAno] = useState(sessionStorage.getItem('home_lastAno') || '');
   const [resultados, setResultados] = useState(JSON.parse(sessionStorage.getItem('home_lastResults')) || []);
@@ -194,15 +203,34 @@ export const Home = () => {
       return;
     }
 
+    // Texto ainda é o que veio de um filtro de Município/Instituição/
+    // Destaque (não editado à mão): repete a mesma busca, com os
+    // parâmetros certos, em vez de tratar o texto como se fosse curso.
+    if (filtroAtivo && filtroAtivo.termo === termoFinal) {
+      await executarPesquisa(
+        { ...filtroAtivo.params, ano },
+        { termoExibicao: termoFinal, estadoExibicao: filtroAtivo.params.uf || '' }
+      );
+      return;
+    }
+
     await executarPesquisa(
       { curso: termoFinal.toUpperCase(), global: true, ano, ...(estado && { uf: estado }) },
       { termoExibicao: termoFinal, estadoExibicao: estado }
     );
   };
 
+  // Digitar por cima do que veio de um filtro invalida o "modo" especial —
+  // volta a ser uma busca de texto normal.
+  const handlePesquisaChange = (valor) => {
+    setPesquisa(valor);
+    setFiltroAtivo(null);
+  };
+
   // Filtro "Municípios": escolheu o estado e depois o município no modal —
   // resultado são os cursos oferecidos naquele município.
   const handleSelecionarMunicipio = (municipio, uf) => {
+    setFiltroAtivo({ termo: municipio, params: { cidade: municipio, uf } });
     executarPesquisa(
       { cidade: municipio, uf, ano },
       { termoExibicao: municipio, estadoExibicao: uf }
@@ -212,9 +240,24 @@ export const Home = () => {
   // Filtro "Instituições": mesma mecânica, mas o passo final é a
   // instituição escolhida dentro do estado.
   const handleSelecionarInstituicao = (instituicao, uf) => {
+    setFiltroAtivo({ termo: instituicao, params: { universidade: instituicao, uf } });
     executarPesquisa(
       { universidade: instituicao, uf, ano },
       { termoExibicao: instituicao, estadoExibicao: uf }
+    );
+  };
+
+  // Cards de "Destaque" (Maiores/Menores Notas, Mais Ofertados, Mais
+  // Procurados) — só no desktop. Sem termo de busca de verdade: o back
+  // devolve uma lista pronta a partir do parâmetro `destaque`. "Mais
+  // Procurados" ignora o Estado selecionado (o ranking de favoritos não é
+  // segmentado por UF).
+  const handleSelecionarDestaque = (destaque, label) => {
+    const uf = destaque === 'mais-procurados' ? undefined : (estado || undefined);
+    setFiltroAtivo({ termo: label, params: { destaque, uf } });
+    executarPesquisa(
+      { destaque, uf, ano },
+      { termoExibicao: label, estadoExibicao: uf || '' }
     );
   };
 
@@ -228,6 +271,10 @@ export const Home = () => {
   };
 
   const dadosAgrupados = agruparPorEstado(resultados);
+
+  // Estado "vazio" da busca: nada digitado e nenhum resultado carregado —
+  // é quando os atalhos de categoria fazem sentido aparecer.
+  const mostrarCategorias = !pesquisa && resultados.length === 0;
 
   // Alterna claro/escuro e, se o usuário estiver logado, salva a escolha no
   // perfil (coluna "tema" em app_configuracoes) pra manter em outros acessos.
@@ -256,6 +303,7 @@ export const Home = () => {
   //Limpeza do input de pesquisa
   const handleClear = () => {
     setPesquisa('');
+    setFiltroAtivo(null);
     setResultados([]);
     setSugestoes([]);
     sessionStorage.removeItem('home_lastSearch');
@@ -436,7 +484,7 @@ export const Home = () => {
             flex={1}
             placeholder="Digite o nome do curso (ex: Ciência da...)"
             value={pesquisa}
-            onChange={setPesquisa}
+            onChange={handlePesquisaChange}
             data={sugestoes}
             filter={({ options }) => options}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -481,21 +529,86 @@ export const Home = () => {
           <Button size="md" onClick={() => handleSearch()}>Pesquisar</Button>
         </Group>
 
-        <Box mt={12}>
-          <Button
-            variant="subtle"
-            size="sm"
-            leftSection={<IconFilter size={16} />}
-            rightSection={filtrosOpened ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
-            onClick={toggleFiltros}
-          >
-            Filtros
-          </Button>
-          <Collapse in={filtrosOpened}>
-            {isMobile && (
-              // Estado e Ano são escolha única (não uma lista pra abrir
-              // modal como Municípios/Instituições/Cursos), então ficam
-              // lado a lado aqui dentro dos Filtros no mobile.
+        {/* Atalhos de "Pesquisa por Categoria": só aparecem no estado vazio
+            (ninguém pesquisou nada ainda, ou acabou de limpar a busca) — o
+            objetivo é dar o que fazer pra quem chega na Home pela primeira
+            vez e vê só um campo de texto em branco. Reaproveitam os mesmos
+            modais já usados pelo botão "Filtros" logo abaixo. */}
+        {mostrarCategorias && (
+          <Box mt="xl">
+            <Text fw={700} size="lg">Pesquise por Categoria</Text>
+            <Text c="dimmed" size="sm" mb="md">Escolha uma opção para visualizar as notas de corte</Text>
+            <Box className={classes.categoryGrid}>
+              <UnstyledButton className={classes.categoryCard} onClick={openCursoModal}>
+                <Box className={`${classes.statIconBadge} ${classes.statIconBadgeBlue}`}>
+                  <IconBook2 size={22} stroke={1.5} />
+                </Box>
+                <Text fw={600}>Por Curso</Text>
+              </UnstyledButton>
+              <UnstyledButton className={classes.categoryCard} onClick={openInstituicaoModal}>
+                <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGreen}`}>
+                  <IconBuildingBank size={22} stroke={1.5} />
+                </Box>
+                <Text fw={600}>Por Faculdade</Text>
+              </UnstyledButton>
+              <UnstyledButton className={classes.categoryCard} onClick={openMunicipioModal}>
+                <Box className={`${classes.statIconBadge} ${classes.statIconBadgePurple}`}>
+                  <IconMapPin size={22} stroke={1.5} />
+                </Box>
+                <Text fw={600}>Por Município</Text>
+              </UnstyledButton>
+
+              {/* Rankings prontos (sem modal, sem termo de busca) — só no
+                  desktop: no mobile os 3 cards acima já bastam pra dar o
+                  que fazer na Home vazia, sem lotar a tela de atalhos. */}
+              {!isMobile && (
+                <>
+                  <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('mais-procurados', 'Mais Procurados')}>
+                    <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGold}`}>
+                      <IconFlame size={22} stroke={1.5} />
+                    </Box>
+                    <Text fw={600}>Mais Procurados</Text>
+                  </UnstyledButton>
+                  <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('maiores-notas', 'Maiores Notas de Corte')}>
+                    <Box className={`${classes.statIconBadge} ${classes.statIconBadgeBlue}`}>
+                      <IconTrophy size={22} stroke={1.5} />
+                    </Box>
+                    <Text fw={600}>Maiores Notas de Corte</Text>
+                  </UnstyledButton>
+                  <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('mais-ofertados', 'Mais Ofertados')}>
+                    <Box className={`${classes.statIconBadge} ${classes.statIconBadgeGreen}`}>
+                      <IconArmchair size={22} stroke={1.5} />
+                    </Box>
+                    <Text fw={600}>Mais Ofertados</Text>
+                  </UnstyledButton>
+                  <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('menores-notas', 'Mais Possibilidades')}>
+                    <Box className={`${classes.statIconBadge} ${classes.statIconBadgePurple}`}>
+                      <IconDoorEnter size={22} stroke={1.5} />
+                    </Box>
+                    <Text fw={600}>Mais Possibilidades</Text>
+                  </UnstyledButton>
+                </>
+              )}
+            </Box>
+          </Box>
+        )}
+
+        {/* No desktop, Estado/Ano já ficam à mostra na barra de busca e
+            Municípios/Instituições/Cursos viraram os cards de categoria
+            acima — o botão "Filtros" ficava duplicando os mesmos filtros,
+            então só sobra no mobile (onde Estado/Ano não cabem na barra). */}
+        {isMobile && (
+          <Box mt={12}>
+            <Button
+              variant="subtle"
+              size="sm"
+              leftSection={<IconFilter size={16} />}
+              rightSection={filtrosOpened ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+              onClick={toggleFiltros}
+            >
+              Filtros
+            </Button>
+            <Collapse in={filtrosOpened}>
               <Group mt="sm" grow className={classes.filtrosEstadoAno}>
                 <Select
                   size='md'
@@ -514,20 +627,9 @@ export const Home = () => {
                   allowDeselect={false}
                 />
               </Group>
-            )}
-            <Group mt="sm">
-              <Button variant="outline" leftSection={<IconMapPin size={16} />} onClick={openMunicipioModal}>
-                Municípios
-              </Button>
-              <Button variant="outline" leftSection={<IconBuildingBank size={16} />} onClick={openInstituicaoModal}>
-                Instituições
-              </Button>
-              <Button variant="outline" leftSection={<IconBook2 size={16} />} onClick={openCursoModal}>
-                Cursos
-              </Button>
-            </Group>
-          </Collapse>
-        </Box>
+            </Collapse>
+          </Box>
+        )}
       </Box>
 
       {/* Resultados em cards */}
