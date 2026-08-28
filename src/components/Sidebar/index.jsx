@@ -7,6 +7,7 @@ import {
   Card,
   Group,
   ActionIcon,
+  UnstyledButton,
   Tooltip
 } from '@mantine/core';
 import { IconHome, IconBook, IconSchool, IconLogout, IconUser, IconChevronLeft, IconChevronRight, IconUpload } from '@tabler/icons-react';
@@ -74,7 +75,24 @@ export const Sidebar = ({ collapsed, onToggleCollapse }) => {
         <Stack className={classes.stackContainer} justify="flex-start" p="12px" h="100%">
 
           <Group className={classes.topBar} justify={collapsedVisual ? 'center' : 'space-between'} wrap="nowrap">
-            {!collapsedVisual && <Text className={classes.logo}>NotePlus+</Text>}
+            {/* Espaçador invisível do mesmo tamanho do botão de retrair, do
+                outro lado — com justify="space-between" e as duas pontas do
+                mesmo tamanho, a logo no meio fica de verdade centralizada
+                na barra, não só "colada à esquerda com o resto sobrando". */}
+            {!collapsedVisual && (
+              <ActionIcon variant="subtle" style={{ visibility: 'hidden' }} aria-hidden="true" tabIndex={-1}>
+                <IconChevronLeft size={18} />
+              </ActionIcon>
+            )}
+            {!collapsedVisual && (
+              <UnstyledButton
+                onClick={() => { tocarClique(); navigate('/'); }}
+                className={classes.logo}
+                aria-label="Ir para a Home"
+              >
+                NotePlus
+              </UnstyledButton>
+            )}
             <ActionIcon
               variant="subtle"
               color="gray.4"
