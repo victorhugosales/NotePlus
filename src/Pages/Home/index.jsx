@@ -66,6 +66,9 @@ export const Home = () => {
   const [loginModalOpened, { open: openLoginModal, close: closeLoginModal }] = useDisclosure(false);
   const [favoritosModalOpened, { open: openFavoritosModal, close: closeFavoritosModal }] = useDisclosure(false);
   const [filtrosOpened, { toggle: toggleFiltros }] = useDisclosure(false);
+  // Categorias começam abertas (é o conteúdo principal da Home vazia) mas
+  // podem ser retraídas — mesma mecânica do botão "Filtros" mais abaixo.
+  const [categoriasOpened, { toggle: toggleCategorias }] = useDisclosure(true);
   const [municipioModalOpened, { open: openMunicipioModal, close: closeMunicipioModal }] = useDisclosure(false);
   const [instituicaoModalOpened, { open: openInstituicaoModal, close: closeInstituicaoModal }] = useDisclosure(false);
   const [cursoModalOpened, { open: openCursoModal, close: closeCursoModal }] = useDisclosure(false);
@@ -537,60 +540,69 @@ export const Home = () => {
             modais já usados pelo botão "Filtros" logo abaixo. */}
         {mostrarCategorias && (
           <Box mt="xl">
-            <Text fw={700} size="lg">Pesquise por Categoria</Text>
+            <UnstyledButton onClick={toggleCategorias} style={{ display: 'block', width: '100%' }}>
+              <Group justify="space-between" wrap="nowrap">
+                <Text fw={700} size="lg">Pesquise por Categoria</Text>
+                {categoriasOpened ? <IconChevronUp size={18} /> : <IconChevronDown size={18} />}
+              </Group>
+            </UnstyledButton>
             <Text c="dimmed" size="sm" mb="md">Escolha uma opção para visualizar as notas de corte</Text>
-            <Box className={classes.categoryGrid}>
-              <UnstyledButton className={classes.categoryCard} onClick={openCursoModal}>
-                <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeBlue}`}>
-                  <IconBook2 size={26} stroke={1.5} />
-                </Box>
-                <Text fw={600} className={classes.categoryLabel}>Por Curso</Text>
-              </UnstyledButton>
-              <UnstyledButton className={classes.categoryCard} onClick={openInstituicaoModal}>
-                <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeGreen}`}>
-                  <IconBuildingBank size={26} stroke={1.5} />
-                </Box>
-                <Text fw={600} className={classes.categoryLabel}>Por Faculdade</Text>
-              </UnstyledButton>
-              <UnstyledButton className={classes.categoryCard} onClick={openMunicipioModal}>
-                <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgePurple}`}>
-                  <IconMapPin size={26} stroke={1.5} />
-                </Box>
-                <Text fw={600} className={classes.categoryLabel}>Por Município</Text>
-              </UnstyledButton>
-
-              {/* Rankings prontos (sem modal, sem termo de busca) — só no
-                  desktop: no mobile os 3 cards acima já bastam pra dar o
-                  que fazer na Home vazia, sem lotar a tela de atalhos. */}
-              {!isMobile && (
-                <>
-                  <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('mais-procurados', 'Mais Procurados')}>
-                    <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeGold}`}>
-                      <IconFlame size={26} stroke={1.5} />
-                    </Box>
-                    <Text fw={600} className={classes.categoryLabel}>Mais Procurados</Text>
-                  </UnstyledButton>
-                  <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('maiores-notas', 'Maiores Notas de Corte')}>
-                    <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeBlue}`}>
-                      <IconTrophy size={26} stroke={1.5} />
-                    </Box>
-                    <Text fw={600} className={classes.categoryLabel}>Maiores Notas de Corte</Text>
-                  </UnstyledButton>
-                  <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('mais-ofertados', 'Mais Ofertados')}>
+            <Collapse in={categoriasOpened}>
+              <Box className={classes.categoryGrid}>
+                <UnstyledButton className={classes.categoryCard} onClick={openCursoModal}>
+                  <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeBlue}`}>
+                    <IconBook2 size={26} stroke={1.5} />
+                  </Box>
+                  <Text fw={600} className={classes.categoryLabel}>Por Curso</Text>
+                </UnstyledButton>
+                {/* No mobile, os 7 cards já disputam espaço em pares — esse
+                    fica de fora ali (Faculdades também dá pra achar pela
+                    busca geral); no desktop continua aparecendo normal. */}
+                {!isMobile && (
+                  <UnstyledButton className={classes.categoryCard} onClick={openInstituicaoModal}>
                     <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeGreen}`}>
-                      <IconArmchair size={26} stroke={1.5} />
+                      <IconBuildingBank size={26} stroke={1.5} />
                     </Box>
-                    <Text fw={600} className={classes.categoryLabel}>Mais Ofertados</Text>
+                    <Text fw={600} className={classes.categoryLabel}>Por Faculdade</Text>
                   </UnstyledButton>
-                  <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('menores-notas', 'Mais Possibilidades')}>
-                    <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgePurple}`}>
-                      <IconDoorEnter size={26} stroke={1.5} />
-                    </Box>
-                    <Text fw={600} className={classes.categoryLabel}>Mais Possibilidades</Text>
-                  </UnstyledButton>
-                </>
-              )}
-            </Box>
+                )}
+                <UnstyledButton className={classes.categoryCard} onClick={openMunicipioModal}>
+                  <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgePurple}`}>
+                    <IconMapPin size={26} stroke={1.5} />
+                  </Box>
+                  <Text fw={600} className={classes.categoryLabel}>Por Município</Text>
+                </UnstyledButton>
+
+                {/* Rankings prontos (sem modal, sem termo de busca) — agora
+                    aparecem em todo tamanho de tela; no mobile os cards ficam
+                    menores (ver .categoryCard em home.module.css) pra caber
+                    os 6 sem precisar rolar demais. */}
+                <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('mais-procurados', 'Mais Procurados')}>
+                  <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeGold}`}>
+                    <IconFlame size={26} stroke={1.5} />
+                  </Box>
+                  <Text fw={600} className={classes.categoryLabel}>Mais Procurados</Text>
+                </UnstyledButton>
+                <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('maiores-notas', 'Maiores Notas de Corte')}>
+                  <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeBlue}`}>
+                    <IconTrophy size={26} stroke={1.5} />
+                  </Box>
+                  <Text fw={600} className={classes.categoryLabel}>Maiores Notas de Corte</Text>
+                </UnstyledButton>
+                <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('mais-ofertados', 'Mais Ofertados')}>
+                  <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgeGreen}`}>
+                    <IconArmchair size={26} stroke={1.5} />
+                  </Box>
+                  <Text fw={600} className={classes.categoryLabel}>Mais Ofertados</Text>
+                </UnstyledButton>
+                <UnstyledButton className={classes.categoryCard} onClick={() => handleSelecionarDestaque('menores-notas', 'Mais Possibilidades')}>
+                  <Box className={`${classes.statIconBadge} ${classes.categoryIconBadge} ${classes.statIconBadgePurple}`}>
+                    <IconDoorEnter size={26} stroke={1.5} />
+                  </Box>
+                  <Text fw={600} className={classes.categoryLabel}>Mais Possibilidades</Text>
+                </UnstyledButton>
+              </Box>
+            </Collapse>
           </Box>
         )}
 

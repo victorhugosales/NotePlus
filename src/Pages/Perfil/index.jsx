@@ -244,7 +244,7 @@ export const Perfil = () => {
                     tab: classes.tab,
                 }}>
                     <Tabs.List>
-                        <Tabs.Tab value="perfil">Perfil</Tabs.Tab>
+                        <Tabs.Tab value="perfil">Principal</Tabs.Tab>
                         <Tabs.Tab value="configuracoes">Configurações</Tabs.Tab>
                     </Tabs.List>
 
@@ -252,13 +252,17 @@ export const Perfil = () => {
                     <Tabs.Panel value="perfil" pt="xl">
                         <Stack gap="xl">
                             <Group>
-                                <Avatar
-                                    size={80}
-                                    radius="xl"
-                                    src={user.avatar_url}
-                                    alt="Foto de perfil"
-                                    className={classes.avatarBorder}
-                                />
+                                {/* Foto de perfil oculta por enquanto — ainda não tem upload
+                                    de verdade, só exibia avatar_url sem forma de trocar. */}
+                                {false && (
+                                    <Avatar
+                                        size={80}
+                                        radius="xl"
+                                        src={user.avatar_url}
+                                        alt="Foto de perfil"
+                                        className={classes.avatarBorder}
+                                    />
+                                )}
                                 <Box>
                                     <Text fw={700} size="xl">{user.nome}</Text>
                                     <Text c="dimmed" size="sm">{user.email}</Text>
@@ -380,23 +384,27 @@ export const Perfil = () => {
                                 </DetailItem>
                             </Box>
 
-                            <Box mt="md">
-                                <Group justify="space-between" mb="lg">
-                                    <Box>
-                                        <Text fw={700} size="lg">Preferências</Text>
-                                        <Text size="xs" c="dimmed">Você pode adicionar preferências de curso</Text>
-                                    </Box>
-                                    <Button
-                                        variant="default"
-                                        size="xs"
-                                        leftSection={<IconPlus size={14} />}
-                                        radius="md"
-                                    >
-                                        Adicionar Cursos
-                                    </Button>
-                                </Group>
-                                <DetailItem label="Nome" value="Análise e Desenvolvimento de Sistemas" />
-                            </Box>
+                            {/* Preferências de curso ocultas por enquanto — vamos
+                                trabalhar nessa feature em outro momento. */}
+                            {false && (
+                                <Box mt="md">
+                                    <Group justify="space-between" mb="lg">
+                                        <Box>
+                                            <Text fw={700} size="lg">Preferências</Text>
+                                            <Text size="xs" c="dimmed">Você pode adicionar preferências de curso</Text>
+                                        </Box>
+                                        <Button
+                                            variant="default"
+                                            size="xs"
+                                            leftSection={<IconPlus size={14} />}
+                                            radius="md"
+                                        >
+                                            Adicionar Cursos
+                                        </Button>
+                                    </Group>
+                                    <DetailItem label="Nome" value="Análise e Desenvolvimento de Sistemas" />
+                                </Box>
+                            )}
 
                             <Box>
                                 <Button
@@ -494,15 +502,19 @@ export const Perfil = () => {
                                 </SimpleGrid>
                             </Box>
 
-                            <Box>
-                                <Text fw={700} size="lg" mb="md">Idioma</Text>
-                                <Select
-                                    placeholder="Selecione o idioma"
-                                    defaultValue={user.configuracoes?.idioma || "pt"}
-                                    data={[{ value: 'pt', label: 'Português' }, { value: 'en', label: 'English' }]}
-                                    radius="md"
-                                />
-                            </Box>
+                            {/* Idioma oculto por enquanto — só tem Português de verdade,
+                                a opção English ainda não muda nada na prática. */}
+                            {false && (
+                                <Box>
+                                    <Text fw={700} size="lg" mb="md">Idioma</Text>
+                                    <Select
+                                        placeholder="Selecione o idioma"
+                                        defaultValue={user.configuracoes?.idioma || "pt"}
+                                        data={[{ value: 'pt', label: 'Português' }, { value: 'en', label: 'English' }]}
+                                        radius="md"
+                                    />
+                                </Box>
+                            )}
                         </Stack>
                     </Tabs.Panel>
                 </Tabs>
