@@ -1,0 +1,19 @@
+.mainContainer {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.card {
+    max-width: 480px;
+    width: 100%;
+    text-align: center;
+}
+
+.icon {
+    display: flex;
+    justify-content: center;
+}

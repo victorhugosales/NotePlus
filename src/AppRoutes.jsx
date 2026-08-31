@@ -17,6 +17,7 @@ const Cursos = lazy(() => import('./Pages/Cursos').then(m => ({ default: m.Curso
 const Faculdades = lazy(() => import('./Pages/Faculdades').then(m => ({ default: m.Faculdades })));
 const Detalhes = lazy(() => import('./Pages/Detalhes').then(m => ({ default: m.Detalhes })));
 const Perfil = lazy(() => import('./Pages/Perfil').then(m => ({ default: m.Perfil })));
+const Feedback = lazy(() => import('./Pages/Feedback').then(m => ({ default: m.Feedback })));
 const ImportarNotas = lazy(() => import('./Pages/Admin/ImportarNotas').then(m => ({ default: m.ImportarNotas })));
 
 import { Navigate, Outlet } from 'react-router-dom';
@@ -67,6 +68,7 @@ export const AppRoutes = () => {
               <Route path="/cursos" element={<Cursos />} />
               <Route path="/faculdades" element={<Faculdades />} />
               <Route path="/detalhes" element={<Detalhes />} />
+              <Route path="/feedback" element={<Feedback />} />
 
               {/* Perfil: exige estar autenticado */}
               <Route element={<RequireAuth />}>

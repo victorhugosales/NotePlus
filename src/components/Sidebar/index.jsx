@@ -10,7 +10,7 @@ import {
   UnstyledButton,
   Tooltip
 } from '@mantine/core';
-import { IconHome, IconBook, IconSchool, IconLogout, IconUser, IconChevronLeft, IconChevronRight, IconUpload } from '@tabler/icons-react';
+import { IconHome, IconBook, IconSchool, IconLogout, IconUser, IconChevronLeft, IconChevronRight, IconUpload, IconMessageCircle } from '@tabler/icons-react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useMediaQuery } from '@mantine/hooks';
@@ -23,6 +23,7 @@ const LINKS = [
   { to: '/cursos', icon: IconBook, label: 'Cursos' },
   { to: '/faculdades', icon: IconSchool, label: 'Faculdades' },
   { to: '/perfil', icon: IconUser, label: 'Perfil' },
+  { to: '/feedback', icon: IconMessageCircle, label: 'Feedback' },
 ];
 
 // collapsed/onToggleCollapse vêm do MainLayout: o conteúdo da página
